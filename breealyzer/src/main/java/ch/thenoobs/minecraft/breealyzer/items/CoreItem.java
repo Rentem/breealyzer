@@ -1,6 +1,6 @@
 package ch.thenoobs.minecraft.breealyzer.items;
 
-import ch.thenoobs.minecraft.breealyzer.BeeMod;
+import ch.thenoobs.minecraft.breealyzer.Breealyzer;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 
@@ -15,7 +15,7 @@ public class CoreItem extends Item {
 	}
 	
 	public void registerItemModel() {
-		BeeMod.proxy.registerItemRenderer(this, 0, itemName);
+		Breealyzer.proxy.registerItemRenderer(this, 0, itemName);
 	}
 	
 	@Override

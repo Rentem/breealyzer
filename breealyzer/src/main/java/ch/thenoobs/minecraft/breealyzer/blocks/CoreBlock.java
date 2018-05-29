@@ -1,6 +1,6 @@
 package ch.thenoobs.minecraft.breealyzer.blocks;
 
-import ch.thenoobs.minecraft.breealyzer.BeeMod;
+import ch.thenoobs.minecraft.breealyzer.Breealyzer;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
@@ -21,7 +21,7 @@ public class CoreBlock extends Block {
 	}
 	
 	public void registerItemModel(Item itemBlock) {
-		BeeMod.proxy.registerItemRenderer(itemBlock, 0, name);
+		Breealyzer.proxy.registerItemRenderer(itemBlock, 0, name);
 	}
 	
 	public Item createItemBlock() {

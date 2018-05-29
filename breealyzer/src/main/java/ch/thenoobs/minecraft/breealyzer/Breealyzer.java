@@ -14,8 +14,8 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@Mod(modid = BeeMod.MOD_ID, version = BeeMod.VERSION)
-public class BeeMod
+@Mod(modid = Breealyzer.MOD_ID, version = Breealyzer.VERSION)
+public class Breealyzer
 {
     public static final String MOD_ID = "breealyzer";
     public static final String NAME = "Breealyzer";
@@ -26,7 +26,7 @@ public class BeeMod
     public static CommonProxy proxy;
     
     @Mod.Instance(MOD_ID)
-	public static BeeMod instance;
+	public static Breealyzer instance;
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
