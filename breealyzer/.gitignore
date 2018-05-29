@@ -20,3 +20,10 @@ build
 # other
 eclipse
 run
+/logs/
+/saves/
+/crash-reports/
+/config/
+/options.txt
+/usercache.json
+/usernamecache.json

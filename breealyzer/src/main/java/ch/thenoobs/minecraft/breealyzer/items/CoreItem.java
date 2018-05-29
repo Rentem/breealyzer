@@ -9,6 +9,7 @@ public class CoreItem extends Item {
 	protected String itemName;
 
 	public CoreItem(String name) {
+		setCreativeTab(Breealyzer.BREEALYZER_TAB);
 		this.itemName = name;
 		setUnlocalizedName(name);
 		setRegistryName(name);

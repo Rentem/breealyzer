@@ -5,7 +5,7 @@ import net.minecraft.item.Item;
 import net.minecraftforge.registries.IForgeRegistry;
 
 public class ModItems {
-	public static CoreItem ingotCopper = new CoreItem("ingot_copper").setCreativeTab(CreativeTabs.MATERIALS);
+	public static CoreItem ingotCopper = new CoreItem("ingot_copper");
 
 	public static void register(IForgeRegistry<Item> registry) {
 		registry.registerAll(

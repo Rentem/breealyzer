@@ -1,5 +1,6 @@
 package ch.thenoobs.minecraft.breealyzer.blocks;
 
+import ch.thenoobs.minecraft.breealyzer.Breealyzer;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
 

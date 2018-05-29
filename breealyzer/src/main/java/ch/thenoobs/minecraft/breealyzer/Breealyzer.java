@@ -25,6 +25,9 @@ public class Breealyzer
     @SidedProxy(serverSide = "ch.thenoobs.minecraft.breealyzer.proxies.CommonProxy", clientSide = "ch.thenoobs.minecraft.breealyzer.proxies.ClientProxy")
     public static CommonProxy proxy;
     
+
+    public static final BreealyzerTab BREEALYZER_TAB = new BreealyzerTab();
+    
     @Mod.Instance(MOD_ID)
 	public static Breealyzer instance;
 

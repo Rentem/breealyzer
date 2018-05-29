@@ -18,6 +18,7 @@ public class CoreBlock extends Block {
 	
 		setUnlocalizedName(name);
 		setRegistryName(name);
+		setCreativeTab(Breealyzer.BREEALYZER_TAB);
 	}
 	
 	public void registerItemModel(Item itemBlock) {
