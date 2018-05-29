@@ -21,6 +21,7 @@ public class BeeMod
     public static final String NAME = "Breealyzer";
     public static final String VERSION = "0.1";
     
+    
     @SidedProxy(serverSide = "ch.thenoobs.minecraft.breealyzer.proxies.CommonProxy", clientSide = "ch.thenoobs.minecraft.breealyzer.proxies.ClientProxy")
     public static CommonProxy proxy;
     
