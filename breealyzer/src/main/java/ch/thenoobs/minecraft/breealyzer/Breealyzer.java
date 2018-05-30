@@ -3,6 +3,7 @@ package ch.thenoobs.minecraft.breealyzer;
 import ch.thenoobs.minecraft.breealyzer.blocks.ModBlocks;
 import ch.thenoobs.minecraft.breealyzer.items.ModItems;
 import ch.thenoobs.minecraft.breealyzer.proxies.CommonProxy;
+import forestry.api.apiculture.BeeManager;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.event.ModelRegistryEvent;
@@ -43,7 +44,6 @@ public class Breealyzer
 
 	@Mod.EventHandler
 	public void postInit(FMLPostInitializationEvent event) {
-
 	}
 	
 	@Mod.EventBusSubscriber
@@ -52,6 +52,7 @@ public class Breealyzer
 		public static void registerItems(RegistryEvent.Register<Item> event) {
 			ModItems.register(event.getRegistry());
 			ModBlocks.registerItemBlocks(event.getRegistry());
+			
 		}
 		
 		@SubscribeEvent

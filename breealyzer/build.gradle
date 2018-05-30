@@ -2,10 +2,13 @@ buildscript {
     repositories {
         jcenter()
         maven { url = "http://files.minecraftforge.net/maven" }
+
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     }
+    
+    
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
@@ -21,7 +24,7 @@ compileJava {
 }
 
 minecraft {
-    version = "1.12-14.21.1.2387"
+    version = mcversion + "-" + forgeversion
     runDir = "run"
     
     // the mappings can be changed at any time, and must be in the following format.
@@ -33,7 +36,36 @@ minecraft {
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
 
+repositories {
+maven {
+name = "jei"
+url "http://dvs1.progwml6.com/files/maven"
+}
+maven {
+name = "ic2, forestry"
+url = "http://maven.ic2.player.to/"
+}
+maven {
+name = "CurseForge"
+url = "https://minecraft.curseforge.com/api/maven/"
+}
+maven {
+name "Jared"
+url "http://maven.blamejared.com/"
+}
+}
+
 dependencies {
+deobfCompile("net.sengir.forestry:forestry_${forestry_mcversion}:${forestry_version}") {
+transitive = false
+}
+deobfProvided "mezz.jei:jei_${jei_mcversion}:${jei_version}:api"
+runtime "mezz.jei:jei_${jei_mcversion}:${jei_version}"
+runtime "jei-bees:jeibees:${jeibees_version}:mc${jeibees_mcversion}"
+deobfProvided "net.industrial-craft:industrialcraft-2:${ic2_version}:api"
+runtime "net.industrial-craft:industrialcraft-2:${ic2_version}"
+//deobfProvided "CraftTweaker2:CraftTweaker2-API:${crafttweaker_version}"
+
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..
     //compile "some.group:artifact:version:classifier"

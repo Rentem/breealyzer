@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import forestry.apiculture.items.ItemBeeGE;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
@@ -38,6 +39,10 @@ public class InventoryUtil {
 		final ItemStack stackToPull = sourcePair.getInventoryHandler().getStackInSlot(sourceSlot);
 		if (stackToPull.isEmpty()) {
 			return false;
+		}
+		if (stackToPull.getItem() instanceof ItemBeeGE) {
+			ItemBeeGE bee = (ItemBeeGE) stackToPull.getItem();
+			System.out.println("moving " + stackToPull.getCount() + " of " + bee.getItemStackDisplayName(stackToPull));
 		}
 		final ItemStack leftover = targetPair.getInventoryHandler().insertItem(targetSlot, stackToPull, true);
 		int amount = stackToPull.getCount() - leftover.getCount();
