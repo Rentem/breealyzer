@@ -26,8 +26,7 @@ public class InventoryUtil {
 		}
 	}
 
-	public static void moveStack(InventoryHandlerEntityPair targetPair, InventoryHandlerEntityPair sourcePair, int sourceSlot) {				
-		int amount;
+	public static void moveStack(InventoryHandlerEntityPair targetPair, InventoryHandlerEntityPair sourcePair, int sourceSlot) {		
 		for (int targetSlot = 0; targetSlot < targetPair.getInventoryHandler().getSlots(); targetSlot++) {
 			if (moveStack(targetPair, targetSlot, sourcePair, sourceSlot)) {
 				break;
