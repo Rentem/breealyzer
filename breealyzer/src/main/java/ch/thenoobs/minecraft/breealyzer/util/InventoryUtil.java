@@ -27,25 +27,38 @@ public class InventoryUtil {
 		}
 	}
 
-	public static void moveStack(InventoryHandlerEntityPair targetPair, InventoryHandlerEntityPair sourcePair, int sourceSlot) {		
+	public static void moveStack(InventoryHandlerEntityPair targetPair, InventoryHandlerEntityPair sourcePair, int sourceSlot) {
+		final ItemStack stackToPull = sourcePair.getInventoryHandler().getStackInSlot(sourceSlot);
+		if (stackToPull.isEmpty()) {
+			return;
+		}
 		for (int targetSlot = 0; targetSlot < targetPair.getInventoryHandler().getSlots(); targetSlot++) {
 			if (moveStack(targetPair, targetSlot, sourcePair, sourceSlot)) {
 				break;
 			}
 		}
 	}
-
+	
 	public static boolean moveStack(InventoryHandlerEntityPair targetPair, int targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot) {		
+		Integer movedAmount = 0;
+		boolean result =  moveStack(targetPair, targetSlot, sourcePair, sourceSlot, movedAmount);
+		System.out.println(movedAmount);
+		return result;
+	}
+
+	public static boolean moveStack(InventoryHandlerEntityPair targetPair, int targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot, Integer movedAmount) {		
+		if (movedAmount == null) {
+			movedAmount = 0;
+		}
 		final ItemStack stackToPull = sourcePair.getInventoryHandler().getStackInSlot(sourceSlot);
 		if (stackToPull.isEmpty()) {
 			return false;
 		}
-		if (stackToPull.getItem() instanceof ItemBeeGE) {
-			ItemBeeGE bee = (ItemBeeGE) stackToPull.getItem();
-			System.out.println("moving " + stackToPull.getCount() + " of " + bee.getItemStackDisplayName(stackToPull));
-		}
 		final ItemStack leftover = targetPair.getInventoryHandler().insertItem(targetSlot, stackToPull, true);
 		int amount = stackToPull.getCount() - leftover.getCount();
+		if (amount == 0) {
+			return false;
+		}
 		final ItemStack effectiveStack = sourcePair.getInventoryHandler().extractItem(sourceSlot, amount, false);
 		targetPair.getInventoryHandler().insertItem(targetSlot, effectiveStack, false);
 		targetPair.getTileEntity().markDirty();

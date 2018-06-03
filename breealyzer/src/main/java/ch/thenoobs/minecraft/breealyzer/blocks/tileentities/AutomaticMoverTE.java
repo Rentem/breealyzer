@@ -29,7 +29,6 @@ public class AutomaticMoverTE extends TileEntity implements ITickable {
 
 	private void executeTick() {
 		if (!world.isRemote) {
-			System.out.println("TICK");
 			//			EntityItem item = new EntityItem(world, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(ModItems.ingotCopper));
 			//			world.spawnEntity(item);
 
