@@ -1,7 +1,18 @@
 package ch.thenoobs.minecraft.breealyzer.blocks.tileentities;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import ch.thenoobs.minecraft.breealyzer.util.InventoryHandlerEntityPair;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryUtil;
+import ch.thenoobs.minecraft.breealyzer.util.ItemStackAtSlot;
+import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeSelector;
+import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeWrapper;
+import forestry.api.apiculture.BeeManager;
+import forestry.api.apiculture.EnumBeeChromosome;
+import forestry.api.apiculture.EnumBeeType;
+import forestry.api.apiculture.IBee;
 import forestry.api.genetics.IChromosome;
 import forestry.apiculture.items.ItemBeeGE;
 import net.minecraft.item.ItemStack;
@@ -60,18 +71,52 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			}
 
 			clearApiary(apiaryInventoryPair);
+
+			InventoryUtil.condenseItems(beeInventoryPair);
 			
 			analyzeBees();
-			
+
 			fillApiary(apiaryInventoryPair, beeInventoryPair);
 		}
 	}
 
 
 
-	private void fillApiary(InventoryHandlerEntityPair apiaryInventoryPair2, InventoryHandlerEntityPair beeInventoryPair2) {
-		// TODO Auto-generated method stub
+	private void fillApiary(InventoryHandlerEntityPair apiaryInventoryPair, InventoryHandlerEntityPair beeInventoryPair) {
+		if (!apiaryInventoryPair.getInventoryHandler().getStackInSlot(0).isEmpty()) {
+			return;
+		}
+		List<ItemStackAtSlot> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class);
+		Map<EnumBeeType, List<ItemStackAtSlot>> beeMap = bees.stream().collect(Collectors.groupingBy(this::getTypeFromStackAtSlot));
 
+		List<ItemStackAtSlot> drones = beeMap.get(EnumBeeType.DRONE);
+		List<ItemStackAtSlot> princesses = beeMap.get(EnumBeeType.PRINCESS);
+		if (drones == null || princesses == null) {
+			return;
+		}
+		BeeSelector selector = new BeeSelector();
+		selector.initScoreres("Cultivated");
+		selector.initWeights();
+		ItemStackAtSlot selectedDrone = selectBee(drones, selector);
+		ItemStackAtSlot selectedPrincess = selectBee(princesses, selector);
+
+		InventoryUtil.moveItemAmount(apiaryInventoryPair, 0, beeInventoryPair, selectedPrincess.getSlot(), 1);
+		InventoryUtil.moveItemAmount(apiaryInventoryPair, 1, beeInventoryPair, selectedDrone.getSlot(), 1);
+	}
+
+	private ItemStackAtSlot selectBee(List<ItemStackAtSlot> bees, BeeSelector selector) {
+		List<BeeWrapper> dronesIBee = bees.stream().map(BreealyzerTE::wrapBee).collect(Collectors.toList());
+		BeeWrapper selectedDroneIBee = selector.selectBeeFromList(dronesIBee);
+		return (ItemStackAtSlot) selectedDroneIBee.getObject();
+	}
+
+	private static BeeWrapper wrapBee(ItemStackAtSlot iSTAT) {
+		BeeWrapper newWrapper = new BeeWrapper(((ItemBeeGE)iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack()), iSTAT);
+		return newWrapper;
+	}
+
+	private EnumBeeType getTypeFromStackAtSlot(ItemStackAtSlot iSTAT) {
+		return ((ItemBeeGE)iSTAT.getStack().getItem()).getType();
 	}
 
 	private void analyzeBees() {
@@ -83,7 +128,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			//		System.out.println("Analyzed " + amount + " bees");
 			beeAmountInAnalyzer -= amount;
 		}
-//		System.out.println("Bees in analyzer: " + beeAmountInAnalyzer);
+		//		System.out.println("Bees in analyzer: " + beeAmountInAnalyzer);
 	}
 
 	private int fillAnalyzer(InventoryHandlerEntityPair workChest, InventoryHandlerEntityPair anlayzer) {
@@ -102,10 +147,12 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		if (stackToPull.getItem() instanceof ItemBeeGE) {
 			ItemBeeGE beeItem = (ItemBeeGE) stackToPull.getItem();
 			if (beeItem.getIndividual(stackToPull).isAnalyzed()) {
-				IChromosome[] chromosomes = beeItem.getIndividual(stackToPull).getGenome().getChromosomes();
-				for (IChromosome chrom : chromosomes) {
-					System.out.println("Chromosome: " + chrom.getActiveAllele().getAlleleName());
-				}
+//				IChromosome[] chromosomes = beeItem.getIndividual(stackToPull).getGenome().getChromosomes();
+//				for (IChromosome chrom : chromosomes) {
+//					chrom.toString();
+//					//					Enum
+//					System.out.println("Chromosome: " + chrom.getActiveAllele().getUID() + " -- " + chrom.getPrimaryAllele().getUnlocalizedName());
+//				}
 				return 0;
 			}
 		} else {
