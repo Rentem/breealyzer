@@ -15,13 +15,16 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@Mod(modid = Breealyzer.MOD_ID, version = Breealyzer.VERSION)
+@Mod(
+		modid = Breealyzer.MOD_ID, 
+		version = Breealyzer.VERSION,
+		dependencies = "required-after:forestry")
 public class Breealyzer
 {
     public static final String MOD_ID = "breealyzer";
     public static final String NAME = "Breealyzer";
     public static final String VERSION = "0.1";
-        
+            
     
     @SidedProxy(serverSide = "ch.thenoobs.minecraft.breealyzer.proxies.CommonProxy", clientSide = "ch.thenoobs.minecraft.breealyzer.proxies.ClientProxy")
     public static CommonProxy proxy;
