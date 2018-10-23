@@ -75,7 +75,7 @@ public class BeeSelector {
 	private BeeScore selectBestMatchingBeeScoreFromScoreList(List<BeeScore> beeScores, BeeScore compareScore) {
 		BeeScore resultBee = beeScores.stream()
 				.map(beeScore -> calculateRelativeScore(beeScore, compareScore))
-				.peek(beeScore -> System.out.println(String.format("%-15s%s%15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore)))
+				.peek(beeScore -> System.out.println(String.format("%-15s%s%-15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore)))
 				.reduce(this::returnBeeWithBiggerScore)
 				.orElse(null);
 
@@ -91,7 +91,7 @@ public class BeeSelector {
 	private BeeScore selectBeeScoreFromScoreList(List<BeeScore> beeScores) {
 		BeeScore resultBee = beeScores.stream()
 				.map(this::calculateTotalScore)
-				.peek(beeScore -> System.out.println(String.format("%-15s%s%15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore)))
+				.peek(beeScore -> System.out.println(String.format("%-15s%s%-15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore)))
 				.reduce(this::returnBeeWithBiggerScore)
 				.orElse(null);
 
@@ -111,9 +111,9 @@ public class BeeSelector {
 	}
 	
 	private String getBeeScoreString(BeeScore beeScore) {
-		StringJoiner strJoiner = new StringJoiner(",");
+		StringJoiner strJoiner = new StringJoiner(" ");
 		for (Entry<IChromosomeType, Float> score : beeScore.getChromosomeScores().entrySet()) {
-			String out = String.format("%-15s%s%15s", score.getKey().getName(),": ", Float.toString(score.getValue()));
+			String out = String.format("%15s%s%-15s", score.getKey().getName(),": ", Float.toString(score.getValue()));
 //			String out = String.format("%20s%s", score.getKey().getName(),": ");
 			strJoiner.add(out);
 //			strJoiner.add( + ": " + ));
@@ -164,6 +164,9 @@ public class BeeSelector {
 			result = compareScore - rawScore;
 		} else {
 			result = rawScore - compareScore;
+		}
+		if (result < 0) {
+			result = 0;
 		}
 		return result;
 	}
