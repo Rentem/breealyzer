@@ -20,7 +20,7 @@ public class BooleanAlleleScorer extends AlleleScorer {
 		value = value + getAlleleValue(allele);
 		
 
-		value = value / 2;
+		value = value / (float)2;
 		return value;
 	}
 	

@@ -60,7 +60,7 @@ public class ToleranceAlleleScorer extends AlleleScorer {
 		value = value + getAlleleValue(allele);
 		
 
-		float fValue = value / (2*toleranceMaxWeight);
+		float fValue = value / (float)(2*toleranceMaxWeight);
 		return fValue;
 	}
 	

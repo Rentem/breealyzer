@@ -76,7 +76,9 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			
 			analyzeBees();
 
-			fillApiary(apiaryInventoryPair, beeInventoryPair);
+			if (beeAmountInAnalyzer <= 0) {
+				fillApiary(apiaryInventoryPair, beeInventoryPair);
+			}
 		}
 	}
 
@@ -97,17 +99,20 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		BeeSelector selector = new BeeSelector();
 		selector.initScoreres("Cultivated");
 		selector.initWeights();
-		ItemStackAtSlot selectedDrone = selectBee(drones, selector);
-		ItemStackAtSlot selectedPrincess = selectBee(princesses, selector);
+		
+		List<ItemStackAtSlot> selectedBees = selectBees(drones, princesses, selector);
+		ItemStackAtSlot selectedDrone = selectedBees.get(1);
+		ItemStackAtSlot selectedPrincess =  selectedBees.get(0);
 
 		InventoryUtil.moveItemAmount(apiaryInventoryPair, 0, beeInventoryPair, selectedPrincess.getSlot(), 1);
 		InventoryUtil.moveItemAmount(apiaryInventoryPair, 1, beeInventoryPair, selectedDrone.getSlot(), 1);
 	}
 
-	private ItemStackAtSlot selectBee(List<ItemStackAtSlot> bees, BeeSelector selector) {
-		List<BeeWrapper> dronesIBee = bees.stream().map(BreealyzerTE::wrapBee).collect(Collectors.toList());
-		BeeWrapper selectedDroneIBee = selector.selectBeeFromList(dronesIBee);
-		return (ItemStackAtSlot) selectedDroneIBee.getObject();
+	private List<ItemStackAtSlot> selectBees(List<ItemStackAtSlot> drones, List<ItemStackAtSlot> princesses, BeeSelector selector) {
+		List<BeeWrapper> wrappedDrones = drones.stream().map(BreealyzerTE::wrapBee).collect(Collectors.toList());
+		List<BeeWrapper> wrappedPrincesses = princesses.stream().map(BreealyzerTE::wrapBee).collect(Collectors.toList());
+		List<BeeWrapper> results = selector.selectBreedingPair(wrappedDrones, wrappedPrincesses);
+		return results.stream().map(wrappedBee -> (ItemStackAtSlot)wrappedBee.getObject()).collect(Collectors.toList());
 	}
 
 	private static BeeWrapper wrapBee(ItemStackAtSlot iSTAT) {
@@ -231,6 +236,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setInteger("tickCnt", tickCnt);
 		compound.setInteger("tickModulo", tickModulo);
+		compound.setInteger("beeAmountInAnalyzer", beeAmountInAnalyzer);
 		return super.writeToNBT(compound);
 	}
 
@@ -238,6 +244,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	public void readFromNBT(NBTTagCompound compound) {
 		tickCnt = compound.getInteger("tickCnt");
 		tickModulo = compound.getInteger("tickModulo");
+		beeAmountInAnalyzer = compound.getInteger("beeAmountInAnalyzer");
 		super.readFromNBT(compound);
 	}
 }

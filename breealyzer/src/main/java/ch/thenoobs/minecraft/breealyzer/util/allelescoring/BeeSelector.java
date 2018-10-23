@@ -1,9 +1,11 @@
 package ch.thenoobs.minecraft.breealyzer.util.allelescoring;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -17,13 +19,40 @@ import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.IntegerAllele
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.SpeciesAlleleScorer;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.ToleranceAlleleScorer;
 import forestry.api.apiculture.EnumBeeChromosome;
-import forestry.api.apiculture.IBee;
 import forestry.api.genetics.IChromosomeType;
 
 public class BeeSelector {
 	private Map<IChromosomeType, AlleleScorer> chromosomeScorers;
 	private Map<IChromosomeType, ChromosomeWeight> chromosomeWeights;
 
+	public List<BeeWrapper> selectBreedingPair(List<BeeWrapper> drones, List<BeeWrapper> princesses) {
+		if (chromosomeScorers == null) {
+			return null; //TODO exception?
+		}
+		if (chromosomeWeights == null) {
+			return null; //TODO exception?
+		}
+		System.out.println("---------Selecting from " + princesses.size() + " princesses and " + drones.size() + " drones");
+
+		List<BeeScore> droneScores = drones.stream().map(BeeScore::new).collect(Collectors.toList());
+		List<BeeScore> prinecessesScores = princesses.stream().map(BeeScore::new).collect(Collectors.toList());
+
+		List<BeeScore> beeList = new ArrayList<>(droneScores.size() + prinecessesScores.size());
+		beeList.addAll(droneScores);
+		beeList.addAll(prinecessesScores);
+		
+		for (AlleleScorer scorer : chromosomeScorers.values()) {
+			scorer.socoreBees(beeList);
+		}
+		
+		BeeScore selectedPrincess = selectBeeScoreFromScoreList(prinecessesScores);
+		BeeScore selectedDrohne = selectBestMatchingBeeScoreFromScoreList(droneScores, selectedPrincess);
+		
+		List<BeeWrapper> selectedBees = new ArrayList<>(2);
+		selectedBees.add(selectedPrincess.getBeeWrapper());
+		selectedBees.add(selectedDrohne.getBeeWrapper());
+		return selectedBees;
+	}
 
 	public BeeWrapper selectBeeFromList(List<BeeWrapper> bees) {
 		if (chromosomeScorers == null) {
@@ -40,9 +69,13 @@ public class BeeSelector {
 			scorer.socoreBees(beeScores);
 		}
 
+		return selectBeeScoreFromScoreList(beeScores).getBeeWrapper();
+	}
+	
+	private BeeScore selectBestMatchingBeeScoreFromScoreList(List<BeeScore> beeScores, BeeScore compareScore) {
 		BeeScore resultBee = beeScores.stream()
-				.map(this::calculateTotalScore)
-				.peek(beeScore -> System.out.println(beeScore.getBee().getDisplayName() + " " + beeScore.getTotalScore()))
+				.map(beeScore -> calculateRelativeScore(beeScore, compareScore))
+				.peek(beeScore -> System.out.println(String.format("%-15s%s%15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore)))
 				.reduce(this::returnBeeWithBiggerScore)
 				.orElse(null);
 
@@ -50,7 +83,24 @@ public class BeeSelector {
 			return null;
 		}
 		
-		return resultBee.getBeeWrapper();
+		System.out.println("Choosen bee " + resultBee.getBee().getDisplayName() + " " + resultBee.getTotalScore());
+		return resultBee;
+	}
+	
+
+	private BeeScore selectBeeScoreFromScoreList(List<BeeScore> beeScores) {
+		BeeScore resultBee = beeScores.stream()
+				.map(this::calculateTotalScore)
+				.peek(beeScore -> System.out.println(String.format("%-15s%s%15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore)))
+				.reduce(this::returnBeeWithBiggerScore)
+				.orElse(null);
+
+		if (resultBee == null) {
+			return null;
+		}
+		
+		System.out.println("Choosen bee " + resultBee.getBee().getDisplayName() + " " + resultBee.getTotalScore());
+		return resultBee;
 	}
 	
 	private BeeScore returnBeeWithBiggerScore(BeeScore bee1, BeeScore bee2)  {
@@ -59,10 +109,30 @@ public class BeeSelector {
 		}
 		return bee1;
 	}
+	
+	private String getBeeScoreString(BeeScore beeScore) {
+		StringJoiner strJoiner = new StringJoiner(",");
+		for (Entry<IChromosomeType, Float> score : beeScore.getChromosomeScores().entrySet()) {
+			String out = String.format("%-15s%s%15s", score.getKey().getName(),": ", Float.toString(score.getValue()));
+//			String out = String.format("%20s%s", score.getKey().getName(),": ");
+			strJoiner.add(out);
+//			strJoiner.add( + ": " + ));
+		}
+		return strJoiner.toString();
+	}
 
 	private BeeScore calculateTotalScore(BeeScore beeScore) {
 		float total = beeScore.getChromosomeScores().entrySet().stream()
 				.map(entry -> calculateScore(entry.getValue(), getWeightFromMap(entry.getKey())))
+				.reduce((f1,f2) -> f1 + f2).orElse((float) 0);
+		
+		beeScore.setTotalScore(total);
+		return beeScore;
+	}
+	
+	private BeeScore calculateRelativeScore(BeeScore beeScore, BeeScore compareScore) {
+		float total = beeScore.getChromosomeScores().entrySet().stream()
+				.map(entry -> calculateRelativeScore(compareScore, entry))
 				.reduce((f1,f2) -> f1 + f2).orElse((float) 0);
 		
 		beeScore.setTotalScore(total);
@@ -75,6 +145,27 @@ public class BeeSelector {
 			System.err.println("No weight found for chromosome: " + cType.getName());
 		}
 		return weight;
+	}
+	
+	private float calculateRelativeScore(BeeScore compareScore, Entry<IChromosomeType, Float> entry) {
+		float compareRawScore = compareScore.getChromosomeScores().get(entry.getKey());
+		float rawScore = entry.getValue();
+		ChromosomeWeight weight = getWeightFromMap(entry.getKey());
+		return calculateRelativeScore(rawScore, compareRawScore, weight);
+	}
+	
+	private float calculateRelativeScore(float rawScore, float compareScore, ChromosomeWeight weight) {
+		if (weight == null) {
+			return 0;
+		}
+		
+		float result;
+		if (weight.isInverse()) {
+			result = compareScore - rawScore;
+		} else {
+			result = rawScore - compareScore;
+		}
+		return result;
 	}
 
 	private float calculateScore(float rawScore, ChromosomeWeight weight) {
@@ -93,8 +184,8 @@ public class BeeSelector {
 
 	public void initWeights() {
 		chromosomeWeights = new HashMap<>();
-		chromosomeWeights.put(EnumBeeChromosome.SPECIES, new ChromosomeWeight(8192, false));
-		chromosomeWeights.put(EnumBeeChromosome.FERTILITY, new ChromosomeWeight(4096, false));
+		chromosomeWeights.put(EnumBeeChromosome.FERTILITY, new ChromosomeWeight(100000, false));
+		chromosomeWeights.put(EnumBeeChromosome.SPECIES, new ChromosomeWeight(4096, false));
 		chromosomeWeights.put(EnumBeeChromosome.LIFESPAN, new ChromosomeWeight(2048, true));
 		chromosomeWeights.put(EnumBeeChromosome.NEVER_SLEEPS, new ChromosomeWeight(1024, false));
 		chromosomeWeights.put(EnumBeeChromosome.TOLERATES_RAIN, new ChromosomeWeight(512, false));

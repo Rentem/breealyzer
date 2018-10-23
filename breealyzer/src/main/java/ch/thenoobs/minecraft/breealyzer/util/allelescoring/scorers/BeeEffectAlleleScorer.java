@@ -14,6 +14,8 @@ public class BeeEffectAlleleScorer extends AlleleScorer {
 	static {
 		effectValues.put("None".toLowerCase(), 5L);
 		effectValues.put("Repulsion".toLowerCase(), 6L);
+		effectValues.put("beatific".toLowerCase(), 7L);
+		effectValues.put("radioact.".toLowerCase(), 1L);
 	}
 	
 	public BeeEffectAlleleScorer(IChromosomeType chromosomeType) {
@@ -30,7 +32,7 @@ public class BeeEffectAlleleScorer extends AlleleScorer {
 		value = value + getAlleleValue(allele);
 		
 
-		float fValue = value / (2*effectMaxWeight);
+		float fValue = value / (float)(2*effectMaxWeight);
 		return fValue;
 	}
 	

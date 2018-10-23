@@ -38,7 +38,7 @@ public class FlowerAlleleScorer extends AlleleScorer {
 		value = value + getAlleleValue(allele);
 		
 
-		float fValue = value / (2*flowerMaxWeight);
+		float fValue = value / (float)(2*flowerMaxWeight);
 		return fValue;
 	}
 	

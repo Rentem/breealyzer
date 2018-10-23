@@ -25,7 +25,7 @@ public class AreaAlleleScorer extends AlleleScorer {
 		if (maxValue == 0) {
 			return 0;
 		}
-		value = value / (2*maxValue);
+		value = value / (float)(2*maxValue);
 		return value;
 	}
 	

@@ -25,7 +25,7 @@ public class IntegerAlleleScorer extends AlleleScorer {
 		if (maxValue == 0) {
 			return 0;
 		}
-		float fValue = value / (2*maxValue);
+		float fValue = value / (float)(2*maxValue);
 		return fValue;
 	}
 	

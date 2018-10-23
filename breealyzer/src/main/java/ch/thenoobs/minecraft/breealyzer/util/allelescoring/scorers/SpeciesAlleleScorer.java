@@ -22,7 +22,7 @@ public class SpeciesAlleleScorer extends AlleleScorer {
 		value = value + getAlleleValue(allele);
 		
 
-		float fValue = value / 2;
+		float fValue = value / (float)2;
 		return fValue;
 	}
 	
