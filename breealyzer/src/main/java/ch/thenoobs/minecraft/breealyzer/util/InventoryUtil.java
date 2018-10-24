@@ -206,6 +206,7 @@ public class InventoryUtil {
 		return inventoryHandlers;
 	}
 	
+	//TODO: maybe the Inventory direction is relevant to the Item. Had issues when trying to fill analyzers.. (Maybe add inventory side?) [XpArKeR, 24.10.2018]
 	public static List<InventoryHandlerEntityPair> getInventoryHandlersOfTypeInDirection(World world, BlockPos position, Class<?> type, EnumFacing direction, Boolean checkAllSides) {
 		final List<InventoryHandlerEntityPair> handlers = new ArrayList<>();
 

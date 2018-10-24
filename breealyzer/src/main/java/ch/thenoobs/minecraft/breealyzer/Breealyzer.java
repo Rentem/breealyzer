@@ -3,7 +3,6 @@ package ch.thenoobs.minecraft.breealyzer;
 import ch.thenoobs.minecraft.breealyzer.blocks.ModBlocks;
 import ch.thenoobs.minecraft.breealyzer.items.ModItems;
 import ch.thenoobs.minecraft.breealyzer.proxies.CommonProxy;
-import forestry.api.apiculture.BeeManager;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.event.ModelRegistryEvent;

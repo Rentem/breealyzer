@@ -9,22 +9,14 @@ import ch.thenoobs.minecraft.breealyzer.util.InventoryUtil;
 import ch.thenoobs.minecraft.breealyzer.util.ItemStackAtSlot;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeSelector;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeWrapper;
-import forestry.api.apiculture.BeeManager;
-import forestry.api.apiculture.EnumBeeChromosome;
 import forestry.api.apiculture.EnumBeeType;
-import forestry.api.apiculture.IBee;
-import forestry.api.genetics.IChromosome;
-import forestry.apiculture.genetics.BeeFactory;
 import forestry.apiculture.items.ItemBeeGE;
-import io.netty.handler.codec.http.QueryStringEncoder;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import scala.tools.nsc.symtab.SymbolLoadersStats;
 
 public class BreealyzerTE extends TileEntity implements ITickable {
 	private int tickModulo = 100;
@@ -47,13 +39,18 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		}
 	}
 	
-	private Boolean movedItems = false;
-
 	private void executeTick() {
 		if (!world.isRemote) {
 
-			EnumFacing analyzerSide = EnumFacing.DOWN;
+			IBlockState blockState = world.getBlockState(this.pos);
 			
+			EnumFacing facing = blockState.getValue(BreealyzerBlock.FACING);			
+						
+			EnumFacing outputSide = facing.rotateY();
+			EnumFacing inputSide = outputSide.getOpposite();
+						
+			// starting from the facing, it should be: 1st (right of it) loot (bees), nothing, output						
+			EnumFacing analyzerSide = EnumFacing.DOWN;
 			analyzerInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(analyzerSide), analyzerSide.getOpposite());
 			
 			if (analyzerInventoryPair == null) {
@@ -66,14 +63,14 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 				return;
 			}
 
-			EnumFacing lootSide = EnumFacing.SOUTH;
-			lootInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(lootSide), lootSide.getOpposite());
+			
+			lootInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(inputSide), inputSide.getOpposite());
 			if (lootInventoryPair == null) {
 				return;
 			}
 
-			EnumFacing beeSide = EnumFacing.NORTH;
-			beeInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(beeSide), beeSide.getOpposite());
+			
+			beeInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(outputSide), outputSide.getOpposite());
 			if (beeInventoryPair == null) {
 				return;
 			}
