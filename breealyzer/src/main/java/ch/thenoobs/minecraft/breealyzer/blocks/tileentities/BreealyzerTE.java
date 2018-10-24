@@ -14,12 +14,16 @@ import forestry.api.apiculture.EnumBeeChromosome;
 import forestry.api.apiculture.EnumBeeType;
 import forestry.api.apiculture.IBee;
 import forestry.api.genetics.IChromosome;
+import forestry.apiculture.genetics.BeeFactory;
 import forestry.apiculture.items.ItemBeeGE;
+import io.netty.handler.codec.http.QueryStringEncoder;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import scala.tools.nsc.symtab.SymbolLoadersStats;
 
 public class BreealyzerTE extends TileEntity implements ITickable {
@@ -42,12 +46,16 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			executeTick();
 		}
 	}
+	
+	private Boolean movedItems = false;
 
 	private void executeTick() {
 		if (!world.isRemote) {
 
 			EnumFacing analyzerSide = EnumFacing.DOWN;
+			
 			analyzerInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(analyzerSide), analyzerSide.getOpposite());
+			
 			if (analyzerInventoryPair == null) {
 				return;
 			}
@@ -70,6 +78,23 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 				return;
 			}
 
+			/*
+			List<InventoryHandlerEntityPair> handlers = InventoryUtil.getAnalyzerInventories(world, pos.offset(analyzerSide), analyzerSide.getOpposite());
+									
+			for (InventoryHandlerEntityPair handler : handlers) {
+				TileEntity tileEntity = handler.getTileEntity();
+				
+				System.out.println(String.format("filling Handler: %s located at %s", tileEntity, tileEntity.getPos().toString()));
+				
+				try {
+					handler.getInventoryHandler().insertItem(0, outputStack.copy(), false);
+				}
+				catch (Exception exception)
+				{
+					System.out.println("oops");
+				}
+			}*/
+			
 			clearApiary(apiaryInventoryPair);
 
 			InventoryUtil.condenseItems(beeInventoryPair);
@@ -81,8 +106,6 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			}
 		}
 	}
-
-
 
 	private void fillApiary(InventoryHandlerEntityPair apiaryInventoryPair, InventoryHandlerEntityPair beeInventoryPair) {
 		if (!apiaryInventoryPair.getInventoryHandler().getStackInSlot(0).isEmpty()) {

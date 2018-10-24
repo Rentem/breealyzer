@@ -5,7 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import forestry.apiculture.tiles.TileApiary;
+import forestry.core.tiles.TileAnalyzer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.Item;
@@ -170,12 +171,68 @@ public class InventoryUtil {
 		if (tileEntity == null) {
 			return null;
 		}
+		
+		return getInventoryHandlerEntityPair(tileEntity, side);
+	}
+	
+	public static InventoryHandlerEntityPair getInventoryHandlerEntityPair(TileEntity tileEntity, EnumFacing side ) {
+		
 		final IItemHandler neighbourHandler = tryGetInventoryHandler(tileEntity, side.getOpposite());
+		
 		if (neighbourHandler != null) { 
 			return new InventoryHandlerEntityPair(tileEntity, neighbourHandler);
 		}
+		
 		return null;
 	}
+	
+	
+	public static List<InventoryHandlerEntityPair> getAnalyzerInventories(World world, BlockPos offset, EnumFacing side) {
+		final List<InventoryHandlerEntityPair> inventoryHandlers = new ArrayList<>();
+		
+		TileEntity tileEntity = tryGetTileEntity(world, offset);
+
+		if ((tileEntity != null) && (tileEntity.getClass() == TileAnalyzer.class)) {
+						
+			final List<InventoryHandlerEntityPair> inventories = getInventoryHandlersOfTypeInDirection(world, offset, TileAnalyzer.class, EnumFacing.DOWN, false);
+			
+			for (InventoryHandlerEntityPair handler : inventories) {
+				inventoryHandlers.add(handler);
+			}				
+
+			System.out.println(String.format("Found a total of %s analyzers", inventoryHandlers.size()));
+		}
+					
+		return inventoryHandlers;
+	}
+	
+	public static List<InventoryHandlerEntityPair> getInventoryHandlersOfTypeInDirection(World world, BlockPos position, Class<?> type, EnumFacing direction, Boolean checkAllSides) {
+		final List<InventoryHandlerEntityPair> handlers = new ArrayList<>();
+
+		TileEntity tileEntity = tryGetTileEntity(world, position);
+						
+		if ((tileEntity != null) && (type.isAssignableFrom(tileEntity.getClass()))) {
+			
+			System.out.println(String.format("Got TE; %s at %s (direction: %s)", tileEntity.toString(), position.toString(), direction.toString()));
+			
+			InventoryHandlerEntityPair inventoryHandler = getInventoryHandlerEntityPair(tileEntity, direction.getOpposite());
+			
+			System.out.println(String.format("Got handler: %s for TE: %s", inventoryHandler.getInventoryHandler(), tileEntity));
+			
+			handlers.add(inventoryHandler);
+			
+			BlockPos newPosition = position.offset(direction);
+			
+			final List<InventoryHandlerEntityPair> inventories = getInventoryHandlersOfTypeInDirection(world, newPosition, type, EnumFacing.DOWN, false);
+			
+			for (InventoryHandlerEntityPair subHandler : inventories) {
+				handlers.add(subHandler);
+			}				
+		}
+		
+		return handlers;
+	}
+	
 
 	public static List<InventoryHandlerEntityPair> getNeighbourInventoryHandlerEntity(World world, BlockPos pos) {
 		Collection<EnumFacing> sidesToCheck = Arrays.asList(EnumFacing.HORIZONTALS);
