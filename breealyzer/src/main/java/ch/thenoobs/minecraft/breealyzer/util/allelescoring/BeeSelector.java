@@ -1,6 +1,7 @@
 package ch.thenoobs.minecraft.breealyzer.util.allelescoring;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,11 +20,13 @@ import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.IntegerAllele
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.SpeciesAlleleScorer;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.ToleranceAlleleScorer;
 import forestry.api.apiculture.EnumBeeChromosome;
+import forestry.api.genetics.IChromosome;
 import forestry.api.genetics.IChromosomeType;
 
 public class BeeSelector {
 	private Map<IChromosomeType, AlleleScorer> chromosomeScorers;
 	private Map<IChromosomeType, ChromosomeWeight> chromosomeWeights;
+	private List<IChromosomeType> weightSortedChromosomes;
 
 	public List<BeeWrapper> selectBreedingPair(List<BeeWrapper> drones, List<BeeWrapper> princesses) {
 		if (chromosomeScorers == null) {
@@ -41,7 +44,9 @@ public class BeeSelector {
 		beeList.addAll(droneScores);
 		beeList.addAll(prinecessesScores);
 		
-		for (AlleleScorer scorer : chromosomeScorers.values()) {
+		
+		for (IChromosomeType chromosome : weightSortedChromosomes) {
+			AlleleScorer scorer = chromosomeScorers.get(chromosome);
 			scorer.socoreBees(beeList);
 		}
 		
@@ -65,7 +70,8 @@ public class BeeSelector {
 		List<BeeScore> beeScores = bees.stream().map(BeeScore::new).collect(Collectors.toList());
 
 
-		for (AlleleScorer scorer : chromosomeScorers.values()) {
+		for (IChromosomeType chromosome : weightSortedChromosomes) {
+			AlleleScorer scorer = chromosomeScorers.get(chromosome);
 			scorer.socoreBees(beeScores);
 		}
 
@@ -184,7 +190,26 @@ public class BeeSelector {
 			return rawScore * weight.getWeight();
 		}
 	}
-
+	
+	public void initSortedChromosomes() {
+		weightSortedChromosomes = chromosomeWeights.entrySet().stream().sorted(BeeSelector::getBiggerWeight).map(entry -> entry.getKey()).collect(Collectors.toList());
+		StringJoiner stringJoiner = new StringJoiner(", ");
+		for (IChromosomeType chrom : weightSortedChromosomes) {
+			stringJoiner.add(chrom.toString() + ":" + chromosomeWeights.get(chrom).getWeight());
+		}
+		System.out.println("sorted chromosomes: " + stringJoiner.toString());
+	}
+	
+	private static int getBiggerWeight(Entry<IChromosomeType, ChromosomeWeight> w1, Entry<IChromosomeType, ChromosomeWeight> w2) {
+		if (w1.getValue().getWeight() > w2.getValue().getWeight()) {
+			System.out.println(w1.getKey()+ ":" + w1.getValue().getWeight() + ">" + w2.getKey()+ ":" + w2.getValue().getWeight());
+			return 1;
+		}
+		System.out.println(w1.getKey()+ ":" + w1.getValue().getWeight() + "<" + w2.getKey()+ ":" + w2.getValue().getWeight());
+		return 0;
+	}
+	
+	
 	public void initWeights() {
 		chromosomeWeights = new HashMap<>();
 		chromosomeWeights.put(EnumBeeChromosome.FERTILITY, new ChromosomeWeight(100000, false));
@@ -200,6 +225,7 @@ public class BeeSelector {
 		chromosomeWeights.put(EnumBeeChromosome.FLOWERING, new ChromosomeWeight(4, false));
 		chromosomeWeights.put(EnumBeeChromosome.EFFECT, new ChromosomeWeight(2, false));
 		chromosomeWeights.put(EnumBeeChromosome.TERRITORY, new ChromosomeWeight(1, false));
+		initSortedChromosomes();
 	}
 
 	public void initScoreres(String targetSpecies) {		
