@@ -1,5 +1,6 @@
-package ch.thenoobs.minecraft.breealyzer.blocks.tileentities;
+package ch.thenoobs.minecraft.breealyzer.blocks;
 
+import ch.thenoobs.minecraft.breealyzer.blocks.tileentities.AutomaticMoverTE;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.world.World;

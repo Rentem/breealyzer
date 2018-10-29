@@ -1,5 +1,6 @@
-package ch.thenoobs.minecraft.breealyzer.blocks.tileentities;
+package ch.thenoobs.minecraft.breealyzer.blocks;
 
+import ch.thenoobs.minecraft.breealyzer.blocks.tileentities.BreealyzerTE;
 import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyEnum;
@@ -53,6 +54,7 @@ public class BreealyzerBlock extends CoreTileEntityBlock<BreealyzerTE> {
 	
 	@Override
 	public EnumFacing[] getValidRotations(World world, BlockPos pos) {
+		//return EnumFacing.HORIZONTALS;
 		return EnumFacing.values();
 	}
 	

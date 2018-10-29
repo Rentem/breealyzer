@@ -1,16 +1,24 @@
  {
 	"forge_marker": 1,
 	"defaults": {
+		"model": "breealyzer:breealyzer",
 		"textures": {
-			"all": "breealyzer:blocks/breealyzer"
+			"top": "breealyzer:blocks/breealyzer/top",
+			"bottom": "breealyzer:blocks/breealyzer/bottom",
+			"front": "breealyzer:blocks/breealyzer/front",
+			"side": "breealyzer:blocks/breealyzer/sides",
+			"end": "breealyzer:blocks/breealyzer/end"
 		}
 	},
 	"variants": {
-		"normal": {
-			"model": "cube_all"
-		},
-		"inventory": {
-			"model": "cube_all"
-		}
+        "facing": {
+        	"up": 		{ "y": 0, "x": -90	},
+        	"down": 	{ "x": 90	},
+        	"north": 	{ 	},
+        	"east": 	{ "y": 90 },
+        	"south": 	{ "y": 180 },
+        	"west": 	{ "y": 270 }
+        },
+        "inventory": { "model": "cube_all" }
 	}
 }

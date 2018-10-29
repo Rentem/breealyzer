@@ -130,20 +130,18 @@ public class InventoryUtil {
 	}
 
 	public static IItemHandler tryGetInventoryHandler(TileEntity te, EnumFacing side) {
-		if (te == null) {
-			return null;
-		}
-
-		if (te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side)) {
-			return te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);
-		}
-
-		if (te instanceof ISidedInventory) {
-			return new SidedInvWrapper((ISidedInventory)te, side);
-		}
-
-		if (te instanceof IInventory) {
-			return new InvWrapper((IInventory)te);
+		if (te != null) {
+			if (te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side)) {
+				return te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);
+			}
+	
+			if (te instanceof ISidedInventory) {
+				return new SidedInvWrapper((ISidedInventory)te, side);
+			}
+	
+			if (te instanceof IInventory) {
+				return new InvWrapper((IInventory)te);
+			}
 		}
 
 		return null;
@@ -162,8 +160,8 @@ public class InventoryUtil {
 		if (!world.isBlockLoaded(pos)) {
 			return null;
 		}
-		final TileEntity te = world.getTileEntity(pos);
-		return te;
+		
+		return  world.getTileEntity(pos);
 	}
 
 	public static InventoryHandlerEntityPair getInventoryHandlerEntityPair(World world, BlockPos pos, EnumFacing side) {
@@ -176,7 +174,6 @@ public class InventoryUtil {
 	}
 	
 	public static InventoryHandlerEntityPair getInventoryHandlerEntityPair(TileEntity tileEntity, EnumFacing side ) {
-		
 		final IItemHandler neighbourHandler = tryGetInventoryHandler(tileEntity, side.getOpposite());
 		
 		if (neighbourHandler != null) { 
@@ -206,7 +203,6 @@ public class InventoryUtil {
 		return inventoryHandlers;
 	}
 	
-	//TODO: maybe the Inventory direction is relevant to the Item. Had issues when trying to fill analyzers.. (Maybe add inventory side?) [XpArKeR, 24.10.2018]
 	public static List<InventoryHandlerEntityPair> getInventoryHandlersOfTypeInDirection(World world, BlockPos position, Class<?> type, EnumFacing direction, Boolean checkAllSides) {
 		final List<InventoryHandlerEntityPair> handlers = new ArrayList<>();
 
@@ -214,12 +210,8 @@ public class InventoryUtil {
 						
 		if ((tileEntity != null) && (type.isAssignableFrom(tileEntity.getClass()))) {
 			
-			System.out.println(String.format("Got TE; %s at %s (direction: %s)", tileEntity.toString(), position.toString(), direction.toString()));
-			
 			InventoryHandlerEntityPair inventoryHandler = getInventoryHandlerEntityPair(tileEntity, direction.getOpposite());
-			
-			System.out.println(String.format("Got handler: %s for TE: %s", inventoryHandler.getInventoryHandler(), tileEntity));
-			
+					
 			handlers.add(inventoryHandler);
 			
 			BlockPos newPosition = position.offset(direction);

@@ -1,7 +1,5 @@
 package ch.thenoobs.minecraft.breealyzer.blocks;
 
-import ch.thenoobs.minecraft.breealyzer.blocks.tileentities.AutomaticMoverBlock;
-import ch.thenoobs.minecraft.breealyzer.blocks.tileentities.BreealyzerBlock;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.fml.common.registry.GameRegistry;

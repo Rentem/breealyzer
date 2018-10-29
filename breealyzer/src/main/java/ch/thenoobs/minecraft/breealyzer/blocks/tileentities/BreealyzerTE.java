@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import ch.thenoobs.minecraft.breealyzer.blocks.BreealyzerBlock;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryHandlerEntityPair;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryUtil;
 import ch.thenoobs.minecraft.breealyzer.util.ItemStackAtSlot;
@@ -99,7 +100,8 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			
 			if (analyzers == null) {
 				analyzers = InventoryUtil.getAnalyzerInventories(world, pos.offset(analyzerSide), analyzerSide.getOpposite());
-			}			
+				System.out.println(String.format("Found %s analyzers to use.", analyzers.size()));
+			}
 						
 			clearApiary(apiaryInventoryPair);
 
