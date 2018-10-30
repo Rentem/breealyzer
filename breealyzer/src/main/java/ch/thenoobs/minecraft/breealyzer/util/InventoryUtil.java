@@ -182,27 +182,7 @@ public class InventoryUtil {
 		
 		return null;
 	}
-	
-	
-	public static List<InventoryHandlerEntityPair> getAnalyzerInventories(World world, BlockPos offset, EnumFacing side) {
-		final List<InventoryHandlerEntityPair> inventoryHandlers = new ArrayList<>();
-		
-		TileEntity tileEntity = tryGetTileEntity(world, offset);
 
-		if ((tileEntity != null) && (tileEntity.getClass() == TileAnalyzer.class)) {
-						
-			final List<InventoryHandlerEntityPair> inventories = getInventoryHandlersOfTypeInDirection(world, offset, TileAnalyzer.class, EnumFacing.DOWN, false);
-			
-			for (InventoryHandlerEntityPair handler : inventories) {
-				inventoryHandlers.add(handler);
-			}				
-
-			System.out.println(String.format("Found a total of %s analyzers", inventoryHandlers.size()));
-		}
-					
-		return inventoryHandlers;
-	}
-	
 	public static List<InventoryHandlerEntityPair> getInventoryHandlersOfTypeInDirection(World world, BlockPos position, Class<?> type, EnumFacing direction, Boolean checkAllSides) {
 		final List<InventoryHandlerEntityPair> handlers = new ArrayList<>();
 
@@ -213,10 +193,12 @@ public class InventoryUtil {
 			InventoryHandlerEntityPair inventoryHandler = getInventoryHandlerEntityPair(tileEntity, direction.getOpposite());
 					
 			handlers.add(inventoryHandler);
-			
+						
 			BlockPos newPosition = position.offset(direction);
 			
-			final List<InventoryHandlerEntityPair> inventories = getInventoryHandlersOfTypeInDirection(world, newPosition, type, EnumFacing.DOWN, false);
+			//System.out.println(String.format("Looking for %s in direction of %s (in position %s (currently %s))", type.getName(), direction.toString(), newPosition.toString(), position.toString()));
+			
+			final List<InventoryHandlerEntityPair> inventories = getInventoryHandlersOfTypeInDirection(world, newPosition, type, direction, false);
 			
 			for (InventoryHandlerEntityPair subHandler : inventories) {
 				handlers.add(subHandler);
