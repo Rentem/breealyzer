@@ -11,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 public class BreealyzerBlock extends CoreTileEntityBlock<BreealyzerTE> {
@@ -22,7 +23,7 @@ public class BreealyzerBlock extends CoreTileEntityBlock<BreealyzerTE> {
 	
 	public BreealyzerBlock() {
 		super(Material.ROCK, "breealyzer");
-		
+		System.out.println(String.format("New Block is Facing: %s (Constructor)", FACING));
 		this.setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
 	}
 	
@@ -54,13 +55,24 @@ public class BreealyzerBlock extends CoreTileEntityBlock<BreealyzerTE> {
 	
 	@Override
 	public EnumFacing[] getValidRotations(World world, BlockPos pos) {
-		//return EnumFacing.HORIZONTALS;
-		return EnumFacing.values();
+		return EnumFacing.HORIZONTALS;
+		//return EnumFacing.values();
 	}
 	
 	@Override
 	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
-		return this.getDefaultState().withProperty(FACING, EnumFacing.getDirectionFromEntityLiving(pos, placer));
+		EnumFacing facingValue = EnumFacing.getDirectionFromEntityLiving(pos, placer);
+
+		if (facingValue == EnumFacing.UP || facingValue == EnumFacing.DOWN) {
+			Vec3d playerVector = placer.getLookVec();
+			
+			facingValue = EnumFacing.getFacingFromVector((float)playerVector.x, 0f, (float)playerVector.z)
+					.getOpposite();
+			
+			System.out.println(String.format("New Block is NewFacingValue: %s", facingValue));
+		}		
+		
+		return this.getDefaultState().withProperty(FACING, facingValue);
 	}
 	
 	/**

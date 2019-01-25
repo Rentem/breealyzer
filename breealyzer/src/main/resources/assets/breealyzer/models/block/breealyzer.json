@@ -2,9 +2,9 @@
  	"parent": "block/cube_column",
     "textures": {
         "particle": "blocks/wool_colored_red",
-        "up": "breealyzer:blocks/breealyzer/top",
+        "up": "breealyzer:blocks/breealyzer/end",
         "north": "breealyzer:blocks/breealyzer/front",
-        "south": "breealyzer:blocks/breealyzer/end",
+        "south": "breealyzer:blocks/breealyzer/top",
         "east": "breealyzer:blocks/breealyzer/side_in",
         "west": "breealyzer:blocks/breealyzer/side_out",
         "down": "breealyzer:blocks/breealyzer/bottom"

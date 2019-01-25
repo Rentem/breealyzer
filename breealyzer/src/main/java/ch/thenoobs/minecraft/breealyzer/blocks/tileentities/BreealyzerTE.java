@@ -53,6 +53,8 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			
 			EnumFacing facing = blockState.getValue(BreealyzerBlock.FACING);			
 			
+			System.out.println(String.format("Facing: %s.", facing));
+			
 			if (facing == EnumFacing.DOWN || facing == EnumFacing.UP) {
 				facing = EnumFacing.NORTH;
 			}
@@ -60,7 +62,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			EnumFacing inputSide = outputSide.getOpposite();
 
 			EnumFacing analyzerSide = EnumFacing.DOWN;
-			EnumFacing apiarySide = EnumFacing.UP;
+			EnumFacing apiarySide = facing.getOpposite();
 
 			lootInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(inputSide), inputSide.getOpposite());
 			if (lootInventoryPair == null) {
@@ -73,19 +75,19 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 				return;
 			}
 			
-			if (apiaries == null) {
+			//if (apiaries == null) {
 				apiaries = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(apiarySide), TileApiary.class, apiarySide, false);
 				System.out.println(String.format("Found %s apiaries to use.", apiaries.size()));
-			}
+			//}
 			
 			if (apiaries.size() < 1) {
 				return;
 			}
 			
-			if (analyzers == null) {
+			//if (analyzers == null) {
 				analyzers = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(analyzerSide), TileAnalyzer.class, analyzerSide, false);
-				System.out.println(String.format("Found %s analyzers to use.", analyzers.size()));
-			}
+				//System.out.println(String.format("Found %s analyzers to use.", analyzers.size()));
+			//}
 			
 			if (analyzers.size() < 1) {
 				return;
