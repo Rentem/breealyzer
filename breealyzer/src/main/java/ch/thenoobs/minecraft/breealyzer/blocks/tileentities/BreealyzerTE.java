@@ -28,8 +28,9 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	private int tickCnt = 0;
 	
 	private InventoryHandlerEntityPair lootInventoryPair;
+	private InventoryHandlerEntityPair seedBankInventoryPair;
 	private InventoryHandlerEntityPair beeInventoryPair;
-	private InventoryHandlerEntityPair beeTrashPair;
+	private InventoryHandlerEntityPair trashInventoryPair;	
 	
 	private List<InventoryHandlerEntityPair> analyzers;
 	private List<InventoryHandlerEntityPair> apiaries;
@@ -48,50 +49,52 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	
 	private void executeTick() {
 		if (!world.isRemote) {
-
 			IBlockState blockState = world.getBlockState(this.pos);
 			
 			EnumFacing facing = blockState.getValue(BreealyzerBlock.FACING);			
-			
-			System.out.println(String.format("Facing: %s.", facing));
-			
+						
 			if (facing == EnumFacing.DOWN || facing == EnumFacing.UP) {
 				facing = EnumFacing.NORTH;
 			}
-			EnumFacing outputSide = facing.rotateY();
-			EnumFacing inputSide = outputSide.getOpposite();
+			
+			EnumFacing inputSide = facing.rotateY();
+			EnumFacing outputSide = inputSide.getOpposite();
 
 			EnumFacing analyzerSide = EnumFacing.DOWN;
 			EnumFacing apiarySide = facing.getOpposite();
 
-			lootInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(inputSide), inputSide.getOpposite());
+			lootInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(outputSide), outputSide.getOpposite());
+			//System.out.println(String.format("Output Inventory found: %s.", (lootInventoryPair != null)));
+			
 			if (lootInventoryPair == null) {
 				return;
 			}
-
 			
-			beeInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(outputSide), outputSide.getOpposite());
+			beeInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(inputSide), inputSide.getOpposite());
+			//System.out.println(String.format("Input Inventory found: %s.", (beeInventoryPair != null)));
+			
 			if (beeInventoryPair == null) {
 				return;
 			}
-			
-			//if (apiaries == null) {
-				apiaries = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(apiarySide), TileApiary.class, apiarySide, false);
-				System.out.println(String.format("Found %s apiaries to use.", apiaries.size()));
-			//}
+						
+			apiaries = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(apiarySide), TileApiary.class, apiarySide, false);
+			//System.out.println(String.format("Found %s apiaries to use.", apiaries.size()));
 			
 			if (apiaries.size() < 1) {
 				return;
 			}
-			
-			//if (analyzers == null) {
-				analyzers = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(analyzerSide), TileAnalyzer.class, analyzerSide, false);
-				//System.out.println(String.format("Found %s analyzers to use.", analyzers.size()));
-			//}
+
+			analyzers = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(analyzerSide), TileAnalyzer.class, analyzerSide, false);
 			
 			if (analyzers.size() < 1) {
 				return;
 			}
+						
+			seedBankInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(inputSide).offset(EnumFacing.UP), outputSide.getOpposite());
+			//System.out.println(String.format("Seed Bank Inventory found: %s.", (seedBankInventoryPair != null)));
+			
+			trashInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(outputSide).offset(EnumFacing.UP), inputSide.getOpposite());
+			//System.out.println(String.format("Trash Inventory found: %s.", (trashInventoryPair != null)));
 
 			clearApiaries();
 
