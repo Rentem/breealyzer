@@ -23,7 +23,6 @@ public class BreealyzerBlock extends CoreTileEntityBlock<BreealyzerTE> {
 	
 	public BreealyzerBlock() {
 		super(Material.ROCK, "breealyzer");
-		System.out.println(String.format("New Block is Facing: %s (Constructor)", FACING));
 		this.setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
 	}
 	
@@ -68,8 +67,6 @@ public class BreealyzerBlock extends CoreTileEntityBlock<BreealyzerTE> {
 			
 			facingValue = EnumFacing.getFacingFromVector((float)playerVector.x, 0f, (float)playerVector.z)
 					.getOpposite();
-			
-			System.out.println(String.format("New Block is NewFacingValue: %s", facingValue));
 		}		
 		
 		return this.getDefaultState().withProperty(FACING, facingValue);

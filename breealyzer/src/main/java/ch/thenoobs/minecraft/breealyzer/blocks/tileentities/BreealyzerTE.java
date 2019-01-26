@@ -27,6 +27,9 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	private int tickModulo = 100;
 	private int tickCnt = 0;
 	
+	private Boolean hasSeedBank = false;
+	private Boolean hasTrash = false;
+	
 	private InventoryHandlerEntityPair lootInventoryPair;
 	private InventoryHandlerEntityPair seedBankInventoryPair;
 	private InventoryHandlerEntityPair beeInventoryPair;
@@ -90,12 +93,20 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 				return;
 			}
 						
-			seedBankInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(inputSide).offset(EnumFacing.UP), outputSide.getOpposite());
+			seedBankInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(inputSide).offset(EnumFacing.UP), outputSide.getOpposite());	
 			//System.out.println(String.format("Seed Bank Inventory found: %s.", (seedBankInventoryPair != null)));
+			
+			if (seedBankInventoryPair != null) {
+				this.hasSeedBank = true;
+			}
 			
 			trashInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(outputSide).offset(EnumFacing.UP), inputSide.getOpposite());
 			//System.out.println(String.format("Trash Inventory found: %s.", (trashInventoryPair != null)));
 
+			if (trashInventoryPair != null) {
+				this.hasTrash = true;
+			}
+			
 			clearApiaries();
 
 			InventoryUtil.condenseItems(beeInventoryPair);

@@ -1,0 +1,33 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern":
+    [
+        " x ",
+        " p ",
+        "xnx"
+    ],
+    "key":
+    {
+        "x":
+        {
+            "type": "forge:ore_dict",
+            "ore": "diamond"
+        },
+        "p":
+        {
+            "item": "minecraft:stone",
+			"data": 0
+        },
+        "n":
+        {
+            "item": "minecraft:sand",
+  			"data": 0
+        }
+    },
+    "result":
+    {
+        "item": "breealyzer:breealyzer",
+        "count": 1,
+        "data": 0
+    }
+}
