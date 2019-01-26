@@ -2,26 +2,31 @@
     "type": "minecraft:crafting_shaped",
     "pattern":
     [
-        " x ",
-        " p ",
-        "xnx"
+        " b ",
+        "rpr",
+        "tnt"
     ],
     "key":
     {
-        "x":
+    	"b":
         {
-            "type": "forge:ore_dict",
-            "ore": "diamond"
+            "item": "#CIRCUITBOARD_GOLD"
+        },
+        "r":
+        {
+            "item": "#REDSTONE_DUST"
         },
         "p":
         {
-            "item": "minecraft:stone",
-			"data": 0
+            "item": "#APIARY"
         },
         "n":
         {
-            "item": "minecraft:sand",
-  			"data": 0
+            "item": "#ANALYZER"
+        },
+        "t":
+        {
+            "item": "#THERMIONIC_TUBES_DIAMOND"
         }
     },
     "result":

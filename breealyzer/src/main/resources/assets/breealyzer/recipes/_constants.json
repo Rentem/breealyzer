@@ -1,0 +1,37 @@
+[
+	{
+		"name": "ANALYZER",
+		"ingredient": {
+			"item": "forestry:analyzer",
+			"data": 0
+		}
+	},
+	{
+		"name": "APIARY",
+		"ingredient": {
+			"item": "forestry:apiary",
+			"data": 0
+		}
+	},
+	{
+		"name": "CIRCUITBOARD_GOLD",
+		"ingredient": {
+			"item": "forestry:chipsets",
+			"data": 3
+		}
+	},
+	{
+		"name": "REDSTONE_DUST",
+		"ingredient": {
+			"item": "minecraft:redstone",
+			"data": 0
+		}
+	},
+	{
+		"name": "THERMIONIC_TUBES_DIAMOND",
+		"ingredient": {
+			"item": "forestry:thermionic_tubes",
+			"data": 5
+		}
+	}
+]

@@ -4,11 +4,13 @@
  - Add breeding mode where a certain target species is set in the tree. breealyzer will try to achieve this with the given resources. if not achievable, display error (missing species / trait).
  - GUI in general.
  - remote apiaries using a VERY VERY expensive "dongle" (which will work as an apiary for the breealyzer - either on top or in line with apiaries)
+ - energy requirements
  - recurring: Improve selection algorithm -  :)
-  
+   
   
   
   Döner:
  - Change analyser side to rear
  - Add Trashbin :) (Top Right of Breealyzer)
  - Add Seed bank chests (top left)
+ - Added Recipe for Breealyzer.
