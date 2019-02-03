@@ -160,10 +160,6 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		return bees.stream().filter(beeStack -> !getBeeFromISTAT(beeStack).isAnalyzed()).collect(Collectors.toList());
 	}
 	
-	private IBee getBeeFromISTAT(ItemStackAtSlot iSTAT) {
-		return ((ItemBeeGE)iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack());
-	}
-	
 	private int fillAnalyzers(List<ItemStackAtSlot> bees, InventoryHandlerEntityPair workChest, List<InventoryHandlerEntityPair> analyzers) {
 		int cnt = bees.size()-1;
 		int totalAmount = 0;
@@ -175,7 +171,12 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		}
 		return totalAmount;
 	}
-		
+	
+	
+	private IBee getBeeFromISTAT(ItemStackAtSlot iSTAT) {
+		return ((ItemBeeGE)iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack());
+	}
+	
 	private int fillAnalyzer(InventoryHandlerEntityPair workChest, InventoryHandlerEntityPair anlayzer) {
 		int amount = 0;
 		for (int sourceSlot = 0; sourceSlot < workChest.getInventoryHandler().getSlots(); sourceSlot++) {

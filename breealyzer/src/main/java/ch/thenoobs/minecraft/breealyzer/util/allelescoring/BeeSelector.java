@@ -43,16 +43,16 @@ public class BeeSelector {
 		List<BeeScore> beeList = new ArrayList<>(droneScores.size() + prinecessesScores.size());
 		beeList.addAll(droneScores);
 		beeList.addAll(prinecessesScores);
-		
-		
+
+
 		for (IChromosomeType chromosome : weightSortedChromosomes) {
 			AlleleScorer scorer = chromosomeScorers.get(chromosome);
 			scorer.socoreBees(beeList);
 		}
-		
+
 		BeeScore selectedPrincess = selectBeeScoreFromScoreList(prinecessesScores);
 		BeeScore selectedDrohne = selectBestMatchingBeeScoreFromScoreList(droneScores, selectedPrincess);
-		
+
 		List<BeeWrapper> selectedBees = new ArrayList<>(2);
 		selectedBees.add(selectedPrincess.getBeeWrapper());
 		selectedBees.add(selectedDrohne.getBeeWrapper());
@@ -77,7 +77,7 @@ public class BeeSelector {
 
 		return selectBeeScoreFromScoreList(beeScores).getBeeWrapper();
 	}
-	
+
 	private BeeScore selectBestMatchingBeeScoreFromScoreList(List<BeeScore> beeScores, BeeScore compareScore) {
 		BeeScore resultBee = beeScores.stream()
 				.map(beeScore -> calculateRelativeScore(beeScore, compareScore))
@@ -88,11 +88,11 @@ public class BeeSelector {
 		if (resultBee == null) {
 			return null;
 		}
-		
+
 		System.out.println("Choosen bee " + resultBee.getBee().getDisplayName() + " " + resultBee.getTotalScore());
 		return resultBee;
 	}
-	
+
 
 	private BeeScore selectBeeScoreFromScoreList(List<BeeScore> beeScores) {
 		BeeScore resultBee = beeScores.stream()
@@ -104,25 +104,27 @@ public class BeeSelector {
 		if (resultBee == null) {
 			return null;
 		}
-		
+
 		System.out.println("Choosen bee " + resultBee.getBee().getDisplayName() + " " + resultBee.getTotalScore());
 		return resultBee;
 	}
-	
+
 	private BeeScore returnBeeWithBiggerScore(BeeScore bee1, BeeScore bee2)  {
 		if (bee1.getTotalScore() < bee2.getTotalScore()) {
 			return bee2;
 		}
 		return bee1;
 	}
-	
+
 	private String getBeeScoreString(BeeScore beeScore) {
 		StringJoiner strJoiner = new StringJoiner(" ");
-		for (Entry<IChromosomeType, Float> score : beeScore.getChromosomeScores().entrySet()) {
-			String out = String.format("%15s%s%-15s", score.getKey().getName(),": ", Float.toString(score.getValue()));
-//			String out = String.format("%20s%s", score.getKey().getName(),": ");
+		for (IChromosomeType chrom : weightSortedChromosomes) {
+			Float score = beeScore.getChromosomeScores().get(chrom);
+			String out = String.format("%15s%s%-15s", chrom.getName(),": ", Float.toString(score));
+			//			String out = String.format("%20s%s", score.getKey().getName(),": ");
 			strJoiner.add(out);
-//			strJoiner.add( + ": " + ));
+			//			strJoiner.add( + ": " + ));
+
 		}
 		return strJoiner.toString();
 	}
@@ -131,16 +133,16 @@ public class BeeSelector {
 		float total = beeScore.getChromosomeScores().entrySet().stream()
 				.map(entry -> calculateScore(entry.getValue(), getWeightFromMap(entry.getKey())))
 				.reduce((f1,f2) -> f1 + f2).orElse((float) 0);
-		
+
 		beeScore.setTotalScore(total);
 		return beeScore;
 	}
-	
+
 	private BeeScore calculateRelativeScore(BeeScore beeScore, BeeScore compareScore) {
 		float total = beeScore.getChromosomeScores().entrySet().stream()
 				.map(entry -> calculateRelativeScore(compareScore, entry))
 				.reduce((f1,f2) -> f1 + f2).orElse((float) 0);
-		
+
 		beeScore.setTotalScore(total);
 		return beeScore;
 	}
@@ -152,19 +154,19 @@ public class BeeSelector {
 		}
 		return weight;
 	}
-	
+
 	private float calculateRelativeScore(BeeScore compareScore, Entry<IChromosomeType, Float> entry) {
 		float compareRawScore = compareScore.getChromosomeScores().get(entry.getKey());
 		float rawScore = entry.getValue();
 		ChromosomeWeight weight = getWeightFromMap(entry.getKey());
 		return calculateRelativeScore(rawScore, compareRawScore, weight);
 	}
-	
+
 	private float calculateRelativeScore(float rawScore, float compareScore, ChromosomeWeight weight) {
 		if (weight == null) {
 			return 0;
 		}
-		
+
 		float result;
 		if (weight.isInverse()) {
 			result = compareScore - rawScore;
@@ -174,7 +176,7 @@ public class BeeSelector {
 		if (result < 0) {
 			result = 0;
 		}
-		return result;
+		return result * weight.getWeight();
 	}
 
 	private float calculateScore(float rawScore, ChromosomeWeight weight) {
@@ -190,7 +192,7 @@ public class BeeSelector {
 			return rawScore * weight.getWeight();
 		}
 	}
-	
+
 	public void initSortedChromosomes() {
 		weightSortedChromosomes = chromosomeWeights.entrySet().stream().sorted(BeeSelector::getBiggerWeight).map(entry -> entry.getKey()).collect(Collectors.toList());
 		StringJoiner stringJoiner = new StringJoiner(", ");
@@ -198,18 +200,22 @@ public class BeeSelector {
 			stringJoiner.add(chrom.toString() + ":" + chromosomeWeights.get(chrom).getWeight());
 		}
 		System.out.println("sorted chromosomes: " + stringJoiner.toString());
+
+
 	}
-	
+
 	private static int getBiggerWeight(Entry<IChromosomeType, ChromosomeWeight> w1, Entry<IChromosomeType, ChromosomeWeight> w2) {
-		if (w1.getValue().getWeight() > w2.getValue().getWeight()) {
-			System.out.println(w1.getKey()+ ":" + w1.getValue().getWeight() + ">" + w2.getKey()+ ":" + w2.getValue().getWeight());
-			return 1;
-		}
-		System.out.println(w1.getKey()+ ":" + w1.getValue().getWeight() + "<" + w2.getKey()+ ":" + w2.getValue().getWeight());
-		return 0;
+		//		if (w1.getValue().getWeight() > w2.getValue().getWeight()) {
+		//			System.out.println(w1.getKey()+ ":" + w1.getValue().getWeight() + ">" + w2.getKey()+ ":" + w2.getValue().getWeight());
+		//			return 1;
+		//		}
+		return -Float.compare(w1.getValue().getWeight(), w2.getValue().getWeight());
+		//		return w1.getValue().getWeight().comw2.getValue().getWeight();
+		//		System.out.println(w1.getKey()+ ":" + w1.getValue().getWeight() + "<" + w2.getKey()+ ":" + w2.getValue().getWeight());
+		//		return -1;
 	}
-	
-	
+
+
 	public void initWeights() {
 		chromosomeWeights = new HashMap<>();
 		chromosomeWeights.put(EnumBeeChromosome.FERTILITY, new ChromosomeWeight(100000, false));
