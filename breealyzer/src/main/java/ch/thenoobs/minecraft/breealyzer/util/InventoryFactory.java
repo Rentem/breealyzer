@@ -55,6 +55,7 @@ public class InventoryFactory {
 		if ((typeName != null) && (!typeName.isEmpty())) {
 			if (!typeMappings.containsKey(typeName)) {
 				typeMappings.put(typeName, handlerType);
+				isSuccessful = true;
 			}
 		}
 		

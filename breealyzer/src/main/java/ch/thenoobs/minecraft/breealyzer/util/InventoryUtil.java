@@ -22,14 +22,11 @@ import net.minecraftforge.items.wrapper.SidedInvWrapper;
 import scala.actors.threadpool.Arrays;
 
 public class InventoryUtil {
-
-
 	public static void emptyInventory(InventoryHandlerEntityPair targetPair, InventoryHandlerEntityPair sourcePair) {
 		for (int sourceSlot = 0; sourceSlot < sourcePair.getItemHandler().getSlots(); sourceSlot++) {
 			moveStack(targetPair, sourcePair, sourceSlot);
 		}
 	}
-
 
 	public static <T> Map<Item, Integer> getItemsOfType(InventoryHandlerEntityPair inventory, Class<T> itemType) {
 		Map<Item, Integer> resultList = new HashMap<Item, Integer>();
@@ -40,7 +37,7 @@ public class InventoryUtil {
 			}
 		}
 		return resultList;
-	} 
+	}
 
 	public static <T> List<ItemStackAtSlot> getStacksOfType(InventoryHandlerEntityPair inventory, Class<T> itemType) {
 		List<ItemStackAtSlot> resultList = new ArrayList<>();
@@ -65,9 +62,7 @@ public class InventoryUtil {
 		}
 	}
 
-
-
-	public static boolean moveStack(InventoryHandlerEntityPair targetPair, int targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot) {		
+	public static boolean moveStack(InventoryHandlerEntityPair targetPair, int targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot) {
 
 		final ItemStack stackToPull = sourcePair.getItemHandler().getStackInSlot(sourceSlot);
 		if (stackToPull.isEmpty()) {
@@ -85,7 +80,7 @@ public class InventoryUtil {
 		return stackToPull.isEmpty();
 	}
 
-	public static boolean moveItemAmount(InventoryHandlerEntityPair targetPair, int targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot, int amount) {		
+	public static boolean moveItemAmount(InventoryHandlerEntityPair targetPair, int targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot, int amount) {
 
 		final ItemStack stackToPull = sourcePair.getItemHandler().extractItem(sourceSlot, amount, true);
 		if (stackToPull.getCount() < amount) {
@@ -109,7 +104,7 @@ public class InventoryUtil {
 			ItemStack sta = inventory.getStackInSlot(i);
 			if (!sta.isEmpty()) {
 				stacks.add(sta.copy());
-				inventory.extractItem(i, sta.getCount(), false);				
+				inventory.extractItem(i, sta.getCount(), false);
 			}
 		}
 
@@ -120,7 +115,7 @@ public class InventoryUtil {
 
 	public static void insertStacks(List<ItemStack> stacks, InventoryHandlerEntityPair target) {
 		for (ItemStack stack : stacks) {
-			for (int targetSlot = 0; targetSlot < target.getItemHandler().getSlots(); targetSlot++) { //TODO throw (chest)overflow onto floor
+			for (int targetSlot = 0; targetSlot < target.getItemHandler().getSlots(); targetSlot++) { // TODO throw (chest)overflow onto floor
 				stack = target.getItemHandler().insertItem(targetSlot, stack, false);
 				if (stack.getCount() <= 0) {
 					break;
@@ -134,13 +129,13 @@ public class InventoryUtil {
 			if (te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side)) {
 				return te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);
 			}
-	
+
 			if (te instanceof ISidedInventory) {
-				return new SidedInvWrapper((ISidedInventory)te, side);
+				return new SidedInvWrapper((ISidedInventory) te, side);
 			}
-	
+
 			if (te instanceof IInventory) {
-				return new InvWrapper((IInventory)te);
+				return new InvWrapper((IInventory) te);
 			}
 		}
 
@@ -160,8 +155,8 @@ public class InventoryUtil {
 		if (!world.isBlockLoaded(pos)) {
 			return null;
 		}
-		
-		return  world.getTileEntity(pos);
+
+		return world.getTileEntity(pos);
 	}
 
 	public static InventoryHandlerEntityPair getInventoryHandlerEntityPair(World world, BlockPos pos, EnumFacing side) {
@@ -169,17 +164,17 @@ public class InventoryUtil {
 		if (tileEntity == null) {
 			return null;
 		}
-		
+
 		return getInventoryHandlerEntityPair(tileEntity, side);
 	}
-	
-	public static <T extends InventoryHandlerEntityPair> T getInventoryHandlerEntityPair(TileEntity tileEntity, EnumFacing side ) {
+
+	public static <T extends InventoryHandlerEntityPair> T getInventoryHandlerEntityPair(TileEntity tileEntity, EnumFacing side) {
 		final IItemHandler neighbourHandler = tryGetInventoryHandler(tileEntity, side.getOpposite());
-		
-		if (neighbourHandler != null) { 
+
+		if (neighbourHandler != null) {
 			return InventoryFactory.GetInvenotryHandler(tileEntity, neighbourHandler);
 		}
-		
+
 		return null;
 	}
 
@@ -187,38 +182,34 @@ public class InventoryUtil {
 		final List<T> handlers = new ArrayList<T>();
 
 		TileEntity tileEntity = tryGetTileEntity(world, position);
-						
+
 		if ((tileEntity != null) && (type.isAssignableFrom(tileEntity.getClass()))) {
-			
+
 			T inventoryHandler = getInventoryHandlerEntityPair(tileEntity, direction.getOpposite());
-					
+
 			handlers.add(inventoryHandler);
-						
+
 			BlockPos newPosition = position.offset(direction);
-			
-			//System.out.println(String.format("Looking for %s in direction of %s (in position %s (currently %s))", type.getName(), direction.toString(), newPosition.toString(), position.toString()));
-			
+
 			final List<T> inventories = getInventoryHandlersOfTypeInDirection(world, newPosition, type, direction, false);
-			
+
 			for (T subHandler : inventories) {
 				handlers.add(subHandler);
-			}				
+			}
 		}
-		
+
 		return handlers;
 	}
-	
 
 	public static List<InventoryHandlerEntityPair> getNeighbourInventoryHandlerEntity(World world, BlockPos pos) {
 		Collection<EnumFacing> sidesToCheck = Arrays.asList(EnumFacing.HORIZONTALS);
 
-
 		final List<InventoryHandlerEntityPair> handlers = new ArrayList<>();
 		for (EnumFacing side : sidesToCheck) {
-			final InventoryHandlerEntityPair inventoryHandlerEntityPair = getInventoryHandlerEntityPair(world,  pos.offset(side), side.getOpposite());
+			final InventoryHandlerEntityPair inventoryHandlerEntityPair = getInventoryHandlerEntityPair(world, pos.offset(side), side.getOpposite());
 
-			if (inventoryHandlerEntityPair != null) { 
-				handlers.add(inventoryHandlerEntityPair); 
+			if (inventoryHandlerEntityPair != null) {
+				handlers.add(inventoryHandlerEntityPair);
 			}
 		}
 
