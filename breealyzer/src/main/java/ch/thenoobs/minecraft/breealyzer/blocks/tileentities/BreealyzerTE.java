@@ -11,6 +11,8 @@ import ch.thenoobs.minecraft.breealyzer.util.InventoryUtil;
 import ch.thenoobs.minecraft.breealyzer.util.ItemStackAtSlot;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeSelector;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeWrapper;
+import ch.thenoobs.minecraft.breealyzer.util.inventory.AnalyzerInventoryHandler;
+import ch.thenoobs.minecraft.breealyzer.util.inventory.ApiaryInventoryHandler;
 import forestry.api.apiculture.EnumBeeType;
 import forestry.api.apiculture.IBee;
 import forestry.apiculture.items.ItemBeeGE;
@@ -35,8 +37,8 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	private InventoryHandlerEntityPair beeInventoryPair;
 	private InventoryHandlerEntityPair trashInventoryPair;	
 	
-	private List<InventoryHandlerEntityPair> analyzers;
-	private List<InventoryHandlerEntityPair> apiaries;
+	private List<AnalyzerInventoryHandler> analyzers;
+	private List<ApiaryInventoryHandler> apiaries;
 
 
 	private int beeAmountInAnalyzer;
@@ -160,7 +162,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		return bees.stream().filter(beeStack -> !getBeeFromISTAT(beeStack).isAnalyzed()).collect(Collectors.toList());
 	}
 	
-	private int fillAnalyzers(List<ItemStackAtSlot> bees, InventoryHandlerEntityPair workChest, List<InventoryHandlerEntityPair> analyzers) {
+	private int fillAnalyzers(List<ItemStackAtSlot> bees, InventoryHandlerEntityPair workChest, List<AnalyzerInventoryHandler> analyzers) {
 		int cnt = bees.size()-1;
 		int totalAmount = 0;
 		while (cnt >= 0) {
@@ -179,14 +181,14 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	
 	private int fillAnalyzer(InventoryHandlerEntityPair workChest, InventoryHandlerEntityPair anlayzer) {
 		int amount = 0;
-		for (int sourceSlot = 0; sourceSlot < workChest.getInventoryHandler().getSlots(); sourceSlot++) {
+		for (int sourceSlot = 0; sourceSlot < workChest.getItemHandler().getSlots(); sourceSlot++) {
 			amount += fillAnalyzer(workChest, anlayzer, sourceSlot);
 		}	
 		return amount;
 	}
 
 	public int fillAnalyzer(InventoryHandlerEntityPair workChest, InventoryHandlerEntityPair analyzer, int sourceSlot) {			
-		final ItemStack stackToPull = workChest.getInventoryHandler().getStackInSlot(sourceSlot);
+		final ItemStack stackToPull = workChest.getItemHandler().getStackInSlot(sourceSlot);
 		if (stackToPull.isEmpty()) {
 			return 0;
 		}
@@ -199,12 +201,12 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			return 0;
 		}
 		int amount = stackToPull.getCount();
-		for (int targetSlot = 0; targetSlot < analyzer.getInventoryHandler().getSlots(); targetSlot++) {
+		for (int targetSlot = 0; targetSlot < analyzer.getItemHandler().getSlots(); targetSlot++) {
 			if (InventoryUtil.moveStack(analyzer, targetSlot, workChest, sourceSlot)) {
 				break;
 			}
 		}
-		final ItemStack stackToPull2 = workChest.getInventoryHandler().getStackInSlot(sourceSlot);
+		final ItemStack stackToPull2 = workChest.getItemHandler().getStackInSlot(sourceSlot);
 		amount = amount - stackToPull2.getCount();
 		return amount;
 	}
@@ -212,13 +214,13 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 
 	private int clearAnalyzer(InventoryHandlerEntityPair workChest, InventoryHandlerEntityPair analyzer) {
 		int amount = 0;
-		for (int sourceSlot = 0; sourceSlot < analyzer.getInventoryHandler().getSlots(); sourceSlot++) {
-			final ItemStack stackToPull = analyzer.getInventoryHandler().getStackInSlot(sourceSlot);
+		for (int sourceSlot = 0; sourceSlot < analyzer.getItemHandler().getSlots(); sourceSlot++) {
+			final ItemStack stackToPull = analyzer.getItemHandler().getStackInSlot(sourceSlot);
 
 			int a = stackToPull.getCount();
 			InventoryUtil.moveStack(workChest, analyzer, sourceSlot);
 
-			final ItemStack stackToPull2 = analyzer.getInventoryHandler().getStackInSlot(sourceSlot);
+			final ItemStack stackToPull2 = analyzer.getItemHandler().getStackInSlot(sourceSlot);
 			amount += a - stackToPull2.getCount();
 
 		}	
@@ -229,7 +231,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		List<InventoryHandlerEntityPair> usableApiaries = new ArrayList<>();
 		
 		for (InventoryHandlerEntityPair apiaryPair : this.apiaries) {
-			if (apiaryPair.getInventoryHandler().getStackInSlot(0).isEmpty()) {
+			if (apiaryPair.getItemHandler().getStackInSlot(0).isEmpty()) {
 				usableApiaries.add(apiaryPair);
 			}
 		}
@@ -273,13 +275,13 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	}
 	
 	public void clearApiary(InventoryHandlerEntityPair apiaryPair) {
-		for (int sourceSlot = 0; sourceSlot < apiaryPair.getInventoryHandler().getSlots(); sourceSlot++) {
-			clearApiary(apiaryPair, sourceSlot);
+		for (int sourceSlot = 0; sourceSlot < apiaryPair.getItemHandler().getSlots(); sourceSlot++) {
+			clearApiary(apiaryPair, sourceSlot);	
 		}		
 	}
 
 	public void clearApiary(InventoryHandlerEntityPair apiaryPair, int sourceSlot) {			
-		final ItemStack stackToPull = apiaryPair.getInventoryHandler().getStackInSlot(sourceSlot);
+		final ItemStack stackToPull = apiaryPair.getItemHandler().getStackInSlot(sourceSlot);
 		if (stackToPull.isEmpty()) {
 			return;
 		}
@@ -289,7 +291,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		} else {
 			targetPair = lootInventoryPair;
 		}
-		for (int targetSlot = 0; targetSlot < targetPair.getInventoryHandler().getSlots(); targetSlot++) {
+		for (int targetSlot = 0; targetSlot < targetPair.getItemHandler().getSlots(); targetSlot++) {
 			if (InventoryUtil.moveStack(targetPair, targetSlot, apiaryPair, sourceSlot)) {
 				break;
 			}

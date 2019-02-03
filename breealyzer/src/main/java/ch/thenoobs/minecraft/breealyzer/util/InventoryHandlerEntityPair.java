@@ -5,12 +5,11 @@ import net.minecraftforge.items.IItemHandler;
 
 public class InventoryHandlerEntityPair {
 	private TileEntity tileEntity;
-	private IItemHandler inventoryHandler;
+	private IItemHandler itemHandler;
 
-
-	InventoryHandlerEntityPair(TileEntity tileEntity, IItemHandler inventoryHandler) {
+	public InventoryHandlerEntityPair(TileEntity tileEntity, IItemHandler itemHandler) {
 		this.tileEntity = tileEntity;
-		this.inventoryHandler = inventoryHandler;
+		this.itemHandler = itemHandler;
 	}
 	
 	public TileEntity getTileEntity() {
@@ -21,11 +20,11 @@ public class InventoryHandlerEntityPair {
 		this.tileEntity = tileEntity;
 	}
 
-	public IItemHandler getInventoryHandler() {
-		return inventoryHandler;
+	public IItemHandler getItemHandler() {
+		return itemHandler;
 	}
 
-	public void setInventoryHandler(IItemHandler inventoryHandler) {
-		this.inventoryHandler = inventoryHandler;
+	public void setItemHandler(IItemHandler itemHandler) {
+		this.itemHandler = itemHandler;
 	}
 }

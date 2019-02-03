@@ -25,7 +25,7 @@ public class InventoryUtil {
 
 
 	public static void emptyInventory(InventoryHandlerEntityPair targetPair, InventoryHandlerEntityPair sourcePair) {
-		for (int sourceSlot = 0; sourceSlot < sourcePair.getInventoryHandler().getSlots(); sourceSlot++) {
+		for (int sourceSlot = 0; sourceSlot < sourcePair.getItemHandler().getSlots(); sourceSlot++) {
 			moveStack(targetPair, sourcePair, sourceSlot);
 		}
 	}
@@ -33,8 +33,8 @@ public class InventoryUtil {
 
 	public static <T> Map<Item, Integer> getItemsOfType(InventoryHandlerEntityPair inventory, Class<T> itemType) {
 		Map<Item, Integer> resultList = new HashMap<Item, Integer>();
-		for (int slot = 0; slot < inventory.getInventoryHandler().getSlots(); slot++) {
-			final ItemStack stackToPull = inventory.getInventoryHandler().getStackInSlot(slot);
+		for (int slot = 0; slot < inventory.getItemHandler().getSlots(); slot++) {
+			final ItemStack stackToPull = inventory.getItemHandler().getStackInSlot(slot);
 			if (itemType.isInstance(stackToPull.getItem())) {
 				resultList.put(stackToPull.getItem(), slot);
 			}
@@ -44,8 +44,8 @@ public class InventoryUtil {
 
 	public static <T> List<ItemStackAtSlot> getStacksOfType(InventoryHandlerEntityPair inventory, Class<T> itemType) {
 		List<ItemStackAtSlot> resultList = new ArrayList<>();
-		for (int slot = 0; slot < inventory.getInventoryHandler().getSlots(); slot++) {
-			final ItemStack stackToPull = inventory.getInventoryHandler().getStackInSlot(slot);
+		for (int slot = 0; slot < inventory.getItemHandler().getSlots(); slot++) {
+			final ItemStack stackToPull = inventory.getItemHandler().getStackInSlot(slot);
 			if (itemType.isInstance(stackToPull.getItem())) {
 				resultList.add(new ItemStackAtSlot(stackToPull, slot));
 			}
@@ -54,11 +54,11 @@ public class InventoryUtil {
 	}
 
 	public static void moveStack(InventoryHandlerEntityPair targetPair, InventoryHandlerEntityPair sourcePair, int sourceSlot) {
-		final ItemStack stackToPull = sourcePair.getInventoryHandler().getStackInSlot(sourceSlot);
+		final ItemStack stackToPull = sourcePair.getItemHandler().getStackInSlot(sourceSlot);
 		if (stackToPull.isEmpty()) {
 			return;
 		}
-		for (int targetSlot = 0; targetSlot < targetPair.getInventoryHandler().getSlots(); targetSlot++) {
+		for (int targetSlot = 0; targetSlot < targetPair.getItemHandler().getSlots(); targetSlot++) {
 			if (moveStack(targetPair, targetSlot, sourcePair, sourceSlot)) {
 				break;
 			}
@@ -69,17 +69,17 @@ public class InventoryUtil {
 
 	public static boolean moveStack(InventoryHandlerEntityPair targetPair, int targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot) {		
 
-		final ItemStack stackToPull = sourcePair.getInventoryHandler().getStackInSlot(sourceSlot);
+		final ItemStack stackToPull = sourcePair.getItemHandler().getStackInSlot(sourceSlot);
 		if (stackToPull.isEmpty()) {
 			return false;
 		}
-		final ItemStack leftover = targetPair.getInventoryHandler().insertItem(targetSlot, stackToPull, true);
+		final ItemStack leftover = targetPair.getItemHandler().insertItem(targetSlot, stackToPull, true);
 		int amount = stackToPull.getCount() - leftover.getCount();
 		if (amount == 0) {
 			return false;
 		}
-		final ItemStack effectiveStack = sourcePair.getInventoryHandler().extractItem(sourceSlot, amount, false);
-		targetPair.getInventoryHandler().insertItem(targetSlot, effectiveStack, false);
+		final ItemStack effectiveStack = sourcePair.getItemHandler().extractItem(sourceSlot, amount, false);
+		targetPair.getItemHandler().insertItem(targetSlot, effectiveStack, false);
 		targetPair.getTileEntity().markDirty();
 		sourcePair.getTileEntity().markDirty();
 		return stackToPull.isEmpty();
@@ -87,23 +87,23 @@ public class InventoryUtil {
 
 	public static boolean moveItemAmount(InventoryHandlerEntityPair targetPair, int targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot, int amount) {		
 
-		final ItemStack stackToPull = sourcePair.getInventoryHandler().extractItem(sourceSlot, amount, true);
+		final ItemStack stackToPull = sourcePair.getItemHandler().extractItem(sourceSlot, amount, true);
 		if (stackToPull.getCount() < amount) {
 			return false;
 		}
-		final ItemStack leftover = targetPair.getInventoryHandler().insertItem(targetSlot, stackToPull, true);
+		final ItemStack leftover = targetPair.getItemHandler().insertItem(targetSlot, stackToPull, true);
 		if (leftover.getCount() > 0) {
 			return false;
 		}
-		final ItemStack effectiveStack = sourcePair.getInventoryHandler().extractItem(sourceSlot, amount, false);
-		targetPair.getInventoryHandler().insertItem(targetSlot, effectiveStack, false);
+		final ItemStack effectiveStack = sourcePair.getItemHandler().extractItem(sourceSlot, amount, false);
+		targetPair.getItemHandler().insertItem(targetSlot, effectiveStack, false);
 		targetPair.getTileEntity().markDirty();
 		sourcePair.getTileEntity().markDirty();
 		return stackToPull.isEmpty();
 	}
 
 	public static void condenseItems(InventoryHandlerEntityPair target) {
-		IItemHandler inventory = target.getInventoryHandler();
+		IItemHandler inventory = target.getItemHandler();
 		List<ItemStack> stacks = new ArrayList<>();
 		for (int i = 0; i < inventory.getSlots(); i++) {
 			ItemStack sta = inventory.getStackInSlot(i);
@@ -120,8 +120,8 @@ public class InventoryUtil {
 
 	public static void insertStacks(List<ItemStack> stacks, InventoryHandlerEntityPair target) {
 		for (ItemStack stack : stacks) {
-			for (int targetSlot = 0; targetSlot < target.getInventoryHandler().getSlots(); targetSlot++) { //TODO throw (chest)overflow onto floor
-				stack = target.getInventoryHandler().insertItem(targetSlot, stack, false);
+			for (int targetSlot = 0; targetSlot < target.getItemHandler().getSlots(); targetSlot++) { //TODO throw (chest)overflow onto floor
+				stack = target.getItemHandler().insertItem(targetSlot, stack, false);
 				if (stack.getCount() <= 0) {
 					break;
 				}
@@ -173,24 +173,24 @@ public class InventoryUtil {
 		return getInventoryHandlerEntityPair(tileEntity, side);
 	}
 	
-	public static InventoryHandlerEntityPair getInventoryHandlerEntityPair(TileEntity tileEntity, EnumFacing side ) {
+	public static <T extends InventoryHandlerEntityPair> T getInventoryHandlerEntityPair(TileEntity tileEntity, EnumFacing side ) {
 		final IItemHandler neighbourHandler = tryGetInventoryHandler(tileEntity, side.getOpposite());
 		
 		if (neighbourHandler != null) { 
-			return new InventoryHandlerEntityPair(tileEntity, neighbourHandler);
+			return InventoryFactory.GetInvenotryHandler(tileEntity, neighbourHandler);
 		}
 		
 		return null;
 	}
 
-	public static List<? extends InventoryHandlerEntityPair> getInventoryHandlersOfTypeInDirection(World world, BlockPos position, Class<?> type, EnumFacing direction, Boolean checkAllSides) {
-		final List<InventoryHandlerEntityPair> handlers = new ArrayList<>();
+	public static <T extends InventoryHandlerEntityPair> List<T> getInventoryHandlersOfTypeInDirection(World world, BlockPos position, Class<?> type, EnumFacing direction, Boolean checkAllSides) {
+		final List<T> handlers = new ArrayList<T>();
 
 		TileEntity tileEntity = tryGetTileEntity(world, position);
 						
 		if ((tileEntity != null) && (type.isAssignableFrom(tileEntity.getClass()))) {
 			
-			InventoryHandlerEntityPair inventoryHandler = getInventoryHandlerEntityPair(tileEntity, direction.getOpposite());
+			T inventoryHandler = getInventoryHandlerEntityPair(tileEntity, direction.getOpposite());
 					
 			handlers.add(inventoryHandler);
 						
@@ -198,9 +198,9 @@ public class InventoryUtil {
 			
 			//System.out.println(String.format("Looking for %s in direction of %s (in position %s (currently %s))", type.getName(), direction.toString(), newPosition.toString(), position.toString()));
 			
-			final List<? extends InventoryHandlerEntityPair> inventories = getInventoryHandlersOfTypeInDirection(world, newPosition, type, direction, false);
+			final List<T> inventories = getInventoryHandlersOfTypeInDirection(world, newPosition, type, direction, false);
 			
-			for (InventoryHandlerEntityPair subHandler : inventories) {
+			for (T subHandler : inventories) {
 				handlers.add(subHandler);
 			}				
 		}

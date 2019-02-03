@@ -3,6 +3,12 @@ package ch.thenoobs.minecraft.breealyzer;
 import ch.thenoobs.minecraft.breealyzer.blocks.ModBlocks;
 import ch.thenoobs.minecraft.breealyzer.items.ModItems;
 import ch.thenoobs.minecraft.breealyzer.proxies.CommonProxy;
+import ch.thenoobs.minecraft.breealyzer.util.InventoryFactory;
+import ch.thenoobs.minecraft.breealyzer.util.Log;
+import ch.thenoobs.minecraft.breealyzer.util.inventory.AnalyzerInventoryHandler;
+import ch.thenoobs.minecraft.breealyzer.util.inventory.ApiaryInventoryHandler;
+import forestry.apiculture.tiles.TileApiary;
+import forestry.core.tiles.TileAnalyzer;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.event.ModelRegistryEvent;
@@ -36,16 +42,22 @@ public class Breealyzer
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
-		System.out.println(NAME + " is loading!");
+		Log.info("Loading {}", NAME);
 	}
 
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
+		Log.info("Initializing {}", NAME);
 		
+		InventoryFactory.registerInventoryHander(TileApiary.class.getName(), ApiaryInventoryHandler.class);
+		InventoryFactory.registerInventoryHander(TileAnalyzer.class.getName(), AnalyzerInventoryHandler.class);
+		
+		Log.info("InventoryFactory has {} registered handlers.", InventoryFactory.getRegisteredHandlers().size());
 	}
 
 	@Mod.EventHandler
 	public void postInit(FMLPostInitializationEvent event) {
+		Log.info("Finished loading.");
 	}
 	
 	@Mod.EventBusSubscriber
@@ -54,7 +66,6 @@ public class Breealyzer
 		public static void registerItems(RegistryEvent.Register<Item> event) {
 			ModItems.register(event.getRegistry());
 			ModBlocks.registerItemBlocks(event.getRegistry());
-			
 		}
 		
 		@SubscribeEvent
