@@ -183,7 +183,7 @@ public class InventoryUtil {
 		return null;
 	}
 
-	public static List<InventoryHandlerEntityPair> getInventoryHandlersOfTypeInDirection(World world, BlockPos position, Class<?> type, EnumFacing direction, Boolean checkAllSides) {
+	public static List<? extends InventoryHandlerEntityPair> getInventoryHandlersOfTypeInDirection(World world, BlockPos position, Class<?> type, EnumFacing direction, Boolean checkAllSides) {
 		final List<InventoryHandlerEntityPair> handlers = new ArrayList<>();
 
 		TileEntity tileEntity = tryGetTileEntity(world, position);
@@ -198,7 +198,7 @@ public class InventoryUtil {
 			
 			//System.out.println(String.format("Looking for %s in direction of %s (in position %s (currently %s))", type.getName(), direction.toString(), newPosition.toString(), position.toString()));
 			
-			final List<InventoryHandlerEntityPair> inventories = getInventoryHandlersOfTypeInDirection(world, newPosition, type, direction, false);
+			final List<? extends InventoryHandlerEntityPair> inventories = getInventoryHandlersOfTypeInDirection(world, newPosition, type, direction, false);
 			
 			for (InventoryHandlerEntityPair subHandler : inventories) {
 				handlers.add(subHandler);
