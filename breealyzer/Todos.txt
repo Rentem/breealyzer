@@ -1,5 +1,6 @@
  - Throw trashy drones into waste bin
    - SeedBank has 5 Drones for each trait (using best trait value) 
+   - differentiate seedBank and workchest (bestScores to workchest)
    - use SeedBank for Selection (and refill?)
    - clean SeedBank (purify for best value for each Trait)
    - 
