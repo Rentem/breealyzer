@@ -6,6 +6,7 @@ import java.util.Map;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.ScoringException;
 import forestry.api.apiculture.IAlleleBeeEffect;
 import forestry.api.apiculture.IBee;
+import forestry.api.genetics.IAlleleFlowers;
 import forestry.api.genetics.IChromosomeType;
 
 public class BeeEffectAlleleScorer extends AlleleScorer {
@@ -46,4 +47,18 @@ public class BeeEffectAlleleScorer extends AlleleScorer {
 		return value;
 	}
 
+	public static float scoreBee(IBee bee, IChromosomeType chromosomeType) {
+		IAlleleBeeEffect allele1 = (IAlleleBeeEffect) bee.getGenome().getActiveAllele(chromosomeType);		
+		IAlleleBeeEffect allele2 = (IAlleleBeeEffect) bee.getGenome().getInactiveAllele(chromosomeType);
+		
+
+		String name1 = allele1.getAlleleName();
+		String name2 = allele2.getAlleleName();
+		
+		if (name1.equalsIgnoreCase(name2)) {
+			return 1;
+		}
+		return 0.5f;
+	}
+	
 }

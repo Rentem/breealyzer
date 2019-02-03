@@ -53,18 +53,10 @@ public class ToleranceAlleleScorer extends AlleleScorer {
 	
 	@Override
 	public float score(IBee bee)throws ScoringException {
-		IAlleleTolerance allele = (IAlleleTolerance) bee.getGenome().getActiveAllele(getChromosomeType());
-		Long value = getAlleleValue(allele);
-		
-		allele = (IAlleleTolerance) bee.getGenome().getInactiveAllele(getChromosomeType());
-		value = value + getAlleleValue(allele);
-		
-
-		float fValue = value / (float)(2*toleranceMaxWeight);
-		return fValue;
+		return scoreBee(bee, getChromosomeType());
 	}
 	
-	private Long getAlleleValue(IAlleleTolerance allele) throws ScoringException {
+	private static Long getAlleleValue(IAlleleTolerance allele) throws ScoringException {
 		String name = allele.getValue().name().toLowerCase();
 		Long value = toleranceValues.get(name);
 		if (value == null) {
@@ -72,6 +64,19 @@ public class ToleranceAlleleScorer extends AlleleScorer {
 			return 0L;
 		}
 		return value;
+	}
+	
+
+	public static float scoreBee(IBee bee, IChromosomeType chromeosomeType) throws ScoringException {
+		IAlleleTolerance allele = (IAlleleTolerance) bee.getGenome().getActiveAllele(chromeosomeType);
+		Long value = getAlleleValue(allele);
+		
+		allele = (IAlleleTolerance) bee.getGenome().getInactiveAllele(chromeosomeType);
+		value = value + getAlleleValue(allele);
+		
+
+		float fValue = value / (float)(2*toleranceMaxWeight);
+		return fValue;
 	}
 
 }

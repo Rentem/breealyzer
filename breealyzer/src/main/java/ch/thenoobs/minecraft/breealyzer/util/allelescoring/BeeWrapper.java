@@ -1,14 +1,15 @@
 package ch.thenoobs.minecraft.breealyzer.util.allelescoring;
 
+import ch.thenoobs.minecraft.breealyzer.util.ItemStackAt;
 import forestry.api.apiculture.IBee;
 
 public class BeeWrapper {
 	private IBee bee;
-	private Object object;
+	private ItemStackAt itemStackAt;
 	
-	public BeeWrapper(IBee bee, Object object) {
+	public BeeWrapper(IBee bee, ItemStackAt itemStackAt) {
 		this.bee = bee;
-		this.object = object;
+		this.itemStackAt = itemStackAt;
 	}
 	
 	public IBee getBee() {
@@ -17,10 +18,13 @@ public class BeeWrapper {
 	public void setBee(IBee bee) {
 		this.bee = bee;
 	}
-	public Object getObject() {
-		return object;
+
+	public ItemStackAt getItemStackAt() {
+		return itemStackAt;
 	}
-	public void setObject(Object object) {
-		this.object = object;
+
+	public void setItemStackAt(ItemStackAt itemStackAt) {
+		this.itemStackAt = itemStackAt;
 	}
+
 }

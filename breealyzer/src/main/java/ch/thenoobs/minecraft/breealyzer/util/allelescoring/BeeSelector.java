@@ -22,13 +22,14 @@ import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.ToleranceAlle
 import forestry.api.apiculture.EnumBeeChromosome;
 import forestry.api.genetics.IChromosome;
 import forestry.api.genetics.IChromosomeType;
+import net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent.Pre;
 
 public class BeeSelector {
 	private Map<IChromosomeType, AlleleScorer> chromosomeScorers;
 	private Map<IChromosomeType, ChromosomeWeight> chromosomeWeights;
 	private List<IChromosomeType> weightSortedChromosomes;
 
-	public List<BeeWrapper> selectBreedingPair(List<BeeWrapper> drones, List<BeeWrapper> princesses) {
+	public ScoringResult selectBreedingPair(List<BeeWrapper> drones, List<BeeWrapper> princesses) {
 		if (chromosomeScorers == null) {
 			return null; //TODO exception?
 		}
@@ -50,13 +51,25 @@ public class BeeSelector {
 			scorer.socoreBees(beeList);
 		}
 
-		BeeScore selectedPrincess = selectBeeScoreFromScoreList(prinecessesScores);
-		BeeScore selectedDrohne = selectBestMatchingBeeScoreFromScoreList(droneScores, selectedPrincess);
+		System.out.println("---------princesses ");
+		prinecessesScores = calculateAndSortBeeScoreList(prinecessesScores);
 
-		List<BeeWrapper> selectedBees = new ArrayList<>(2);
-		selectedBees.add(selectedPrincess.getBeeWrapper());
-		selectedBees.add(selectedDrohne.getBeeWrapper());
-		return selectedBees;
+		System.out.println("---------drones");
+		droneScores = calculateAndSortBeeScoreListRelative(droneScores, prinecessesScores.get(0));
+
+		ScoringResult result = new ScoringResult();
+		result.setSelectedPrincess(prinecessesScores.get(0));
+		result.setSelectedDrone(droneScores.get(0));
+		System.out.println("---------princesses ");
+		printBeeScore(prinecessesScores.get(0));
+		System.out.println("---------drones ");
+		printBeeScore(droneScores.get(0));
+		droneScores.remove(0);
+		prinecessesScores.remove(0);
+		result.setLeftoverDrones(droneScores);
+		result.setLeftoverPrincesses(prinecessesScores);
+		
+		return result;
 	}
 
 	public BeeWrapper selectBeeFromList(List<BeeWrapper> bees) {
@@ -75,46 +88,36 @@ public class BeeSelector {
 			scorer.socoreBees(beeScores);
 		}
 
-		return selectBeeScoreFromScoreList(beeScores).getBeeWrapper();
+		return calculateAndSortBeeScoreList(beeScores).get(0).getBeeWrapper();
 	}
 
-	private BeeScore selectBestMatchingBeeScoreFromScoreList(List<BeeScore> beeScores, BeeScore compareScore) {
-		BeeScore resultBee = beeScores.stream()
+	private List<BeeScore> calculateAndSortBeeScoreListRelative(List<BeeScore> beeScores, BeeScore compareScore) {
+		List<BeeScore> sortedList = beeScores.stream()
 				.map(beeScore -> calculateRelativeScore(beeScore, compareScore))
+				.sorted(this::compareBeeScore)
 				.peek(beeScore -> System.out.println(String.format("%-15s%s%-15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore)))
-				.reduce(this::returnBeeWithBiggerScore)
-				.orElse(null);
-
-		if (resultBee == null) {
-			return null;
-		}
-
-		System.out.println("Choosen bee " + resultBee.getBee().getDisplayName() + " " + resultBee.getTotalScore());
-		return resultBee;
+				.collect(Collectors.toList());
+		return sortedList;
 	}
 
 
-	private BeeScore selectBeeScoreFromScoreList(List<BeeScore> beeScores) {
-		BeeScore resultBee = beeScores.stream()
+	private List<BeeScore> calculateAndSortBeeScoreList(List<BeeScore> beeScores) {
+		List<BeeScore> sortedList = beeScores.stream()
 				.map(this::calculateTotalScore)
-				.peek(beeScore -> System.out.println(String.format("%-15s%s%-15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore)))
-				.reduce(this::returnBeeWithBiggerScore)
-				.orElse(null);
-
-		if (resultBee == null) {
-			return null;
-		}
-
-		System.out.println("Choosen bee " + resultBee.getBee().getDisplayName() + " " + resultBee.getTotalScore());
-		return resultBee;
+				.sorted(this::compareBeeScore)
+				.peek(this::printBeeScore)
+				.collect(Collectors.toList());
+		return sortedList;
 	}
-
-	private BeeScore returnBeeWithBiggerScore(BeeScore bee1, BeeScore bee2)  {
-		if (bee1.getTotalScore() < bee2.getTotalScore()) {
-			return bee2;
-		}
-		return bee1;
+	
+	private void printBeeScore(BeeScore beeScore) {
+		System.out.println(String.format("%-15s%s%-15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore));
 	}
+	
+	private int compareBeeScore(BeeScore bee1, BeeScore bee2)  {
+		return Float.compare(bee2.getTotalScore(), bee1.getTotalScore());
+	}
+		
 
 	private String getBeeScoreString(BeeScore beeScore) {
 		StringJoiner strJoiner = new StringJoiner(" ");
@@ -240,17 +243,17 @@ public class BeeSelector {
 			chromosomeScorers.put(EnumBeeChromosome.SPECIES, new SpeciesAlleleScorer(EnumBeeChromosome.SPECIES, targetSpecies));
 		}
 		addSorter(EnumBeeChromosome.CAVE_DWELLING, BooleanAlleleScorer::new);
-		addSorter(EnumBeeChromosome.EFFECT, BeeEffectAlleleScorer::new);
-		addSorter(EnumBeeChromosome.FERTILITY, IntegerAlleleScorer::new);
-		addSorter(EnumBeeChromosome.FLOWER_PROVIDER, FlowerAlleleScorer::new);
-		addSorter(EnumBeeChromosome.FLOWERING, IntegerAlleleScorer::new);
-		addSorter(EnumBeeChromosome.HUMIDITY_TOLERANCE, ToleranceAlleleScorer::new);
-		addSorter(EnumBeeChromosome.LIFESPAN, IntegerAlleleScorer::new);
 		addSorter(EnumBeeChromosome.NEVER_SLEEPS, BooleanAlleleScorer::new);
-		addSorter(EnumBeeChromosome.SPEED, FloatAlleleScorer::new);
-		addSorter(EnumBeeChromosome.TEMPERATURE_TOLERANCE, ToleranceAlleleScorer::new);
-		addSorter(EnumBeeChromosome.TERRITORY, AreaAlleleScorer::new);
 		addSorter(EnumBeeChromosome.TOLERATES_RAIN, BooleanAlleleScorer::new);
+		addSorter(EnumBeeChromosome.TEMPERATURE_TOLERANCE, ToleranceAlleleScorer::new);
+		addSorter(EnumBeeChromosome.HUMIDITY_TOLERANCE, ToleranceAlleleScorer::new);
+		addSorter(EnumBeeChromosome.FERTILITY, IntegerAlleleScorer::new);
+		addSorter(EnumBeeChromosome.FLOWERING, IntegerAlleleScorer::new);
+		addSorter(EnumBeeChromosome.LIFESPAN, IntegerAlleleScorer::new);
+		addSorter(EnumBeeChromosome.FLOWER_PROVIDER, FlowerAlleleScorer::new);
+		addSorter(EnumBeeChromosome.EFFECT, BeeEffectAlleleScorer::new);
+		addSorter(EnumBeeChromosome.TERRITORY, AreaAlleleScorer::new);
+		addSorter(EnumBeeChromosome.SPEED, FloatAlleleScorer::new);
 	}
 
 	private void addSorter(IChromosomeType cType, Function<IChromosomeType, ? extends AlleleScorer> scorerConstructor) {

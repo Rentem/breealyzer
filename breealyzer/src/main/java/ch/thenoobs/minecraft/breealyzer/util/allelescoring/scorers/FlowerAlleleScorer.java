@@ -52,4 +52,18 @@ public class FlowerAlleleScorer extends AlleleScorer {
 		return value;
 	}
 
+	
+	public static float scoreBee(IBee bee, IChromosomeType chromosomeType) {
+		IAlleleFlowers allele1 = (IAlleleFlowers) bee.getGenome().getActiveAllele(chromosomeType);		
+		IAlleleFlowers allele2 = (IAlleleFlowers) bee.getGenome().getInactiveAllele(chromosomeType);
+		
+
+		String name1 = allele1.getAlleleName();
+		String name2 = allele2.getAlleleName();
+		
+		if (name1.equalsIgnoreCase(name2)) {
+			return 1;
+		}
+		return 0.5f;
+	}
 }

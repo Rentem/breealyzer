@@ -9,6 +9,9 @@ import forestry.api.genetics.IChromosomeType;
 
 public abstract class AlleleScorer {
 	protected IChromosomeType chromosomeType;
+	
+
+	public abstract float score(IBee bee) throws ScoringException;
 
 	public AlleleScorer(IChromosomeType chromosomeType) {
 		if (chromosomeType == null) {
@@ -17,7 +20,8 @@ public abstract class AlleleScorer {
 		this.chromosomeType = chromosomeType;
 	}
 
-	public abstract float score(IBee bee) throws ScoringException;
+	
+	
 
 	public void score(BeeScore score) throws ScoringException {
 		score.getChromosomeScores().put(chromosomeType, score(score.getBee()));

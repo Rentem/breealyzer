@@ -3,6 +3,7 @@ package ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.ScoringException;
 import forestry.api.apiculture.IBee;
 import forestry.api.genetics.IAlleleFloat;
+import forestry.api.genetics.IAlleleInteger;
 import forestry.api.genetics.IChromosomeType;
 
 public class FloatAlleleScorer extends AlleleScorer {
@@ -35,6 +36,16 @@ public class FloatAlleleScorer extends AlleleScorer {
 			maxValue = value;
 			throw new ScoringException();
 		}
+		return value;
+	}
+	
+	public static float scoreBee(IBee bee, IChromosomeType chromeosomeType) throws ScoringException {
+		IAlleleFloat allele = (IAlleleFloat) bee.getGenome().getActiveAllele(chromeosomeType);
+		float value = allele.getValue();
+		
+		allele = (IAlleleFloat) bee.getGenome().getInactiveAllele(chromeosomeType);
+		value = value + allele.getValue();
+		
 		return value;
 	}
 

@@ -12,24 +12,28 @@ public class BooleanAlleleScorer extends AlleleScorer {
 	}
 	
 	@Override
-	public float score(IBee bee)throws ScoringException {
-		IAlleleBoolean allele = (IAlleleBoolean) bee.getGenome().getActiveAllele(getChromosomeType());
-		float value = getAlleleValue(allele);
-		
-		allele = (IAlleleBoolean) bee.getGenome().getInactiveAllele(getChromosomeType());
-		value = value + getAlleleValue(allele);
-		
-
-		value = value / (float)2;
-		return value;
+	public float score(IBee bee) throws ScoringException {
+		return scoreBee(bee, getChromosomeType());
 	}
 	
-	private float getAlleleValue(IAlleleBoolean allele) throws ScoringException {
+	private static float getAlleleValue(IAlleleBoolean allele) throws ScoringException {
 		boolean value = allele.getValue();
 		if (value) {
 			return 1;
 		}
 		return 0;
+	}
+	
+	
+	public static float scoreBee(IBee bee, IChromosomeType chromeosomeType) throws ScoringException {
+		IAlleleBoolean allele = (IAlleleBoolean) bee.getGenome().getActiveAllele(chromeosomeType);
+		float value = getAlleleValue(allele);
+		
+		allele = (IAlleleBoolean) bee.getGenome().getInactiveAllele(chromeosomeType);
+		value = value + getAlleleValue(allele);
+		
+
+		return value / (float)2;
 	}
 
 }

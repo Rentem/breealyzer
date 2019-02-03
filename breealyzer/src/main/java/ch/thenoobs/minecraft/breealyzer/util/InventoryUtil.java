@@ -39,12 +39,12 @@ public class InventoryUtil {
 		return resultList;
 	}
 
-	public static <T> List<ItemStackAtSlot> getStacksOfType(InventoryHandlerEntityPair inventory, Class<T> itemType) {
-		List<ItemStackAtSlot> resultList = new ArrayList<>();
+	public static <T> List<ItemStackAt> getStacksOfType(InventoryHandlerEntityPair inventory, Class<T> itemType) {
+		List<ItemStackAt> resultList = new ArrayList<>();
 		for (int slot = 0; slot < inventory.getItemHandler().getSlots(); slot++) {
 			final ItemStack stackToPull = inventory.getItemHandler().getStackInSlot(slot);
 			if (itemType.isInstance(stackToPull.getItem())) {
-				resultList.add(new ItemStackAtSlot(stackToPull, slot));
+				resultList.add(new ItemStackAt(stackToPull, slot, inventory));
 			}
 		}
 		return resultList;
@@ -60,6 +60,15 @@ public class InventoryUtil {
 				break;
 			}
 		}
+	}
+
+	public static void moveItemStackAtsToTarget(List<ItemStackAt> stacks, InventoryHandlerEntityPair target) {
+		stacks.forEach(s -> moveItemStackAtToTarget(s, target));
+		
+	}
+	
+	public static void moveItemStackAtToTarget(ItemStackAt itemStackAt, InventoryHandlerEntityPair target) {
+		moveStack(target, itemStackAt.getInventory(), itemStackAt.getSlot());
 	}
 
 	public static boolean moveStack(InventoryHandlerEntityPair targetPair, int targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot) {

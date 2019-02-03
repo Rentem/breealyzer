@@ -8,11 +8,14 @@ import java.util.stream.Collectors;
 import ch.thenoobs.minecraft.breealyzer.blocks.BreealyzerBlock;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryHandlerEntityPair;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryUtil;
-import ch.thenoobs.minecraft.breealyzer.util.ItemStackAtSlot;
+import ch.thenoobs.minecraft.breealyzer.util.ItemStackAt;
+import ch.thenoobs.minecraft.breealyzer.util.Log;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeSelector;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeWrapper;
+import ch.thenoobs.minecraft.breealyzer.util.allelescoring.ScoringResult;
 import ch.thenoobs.minecraft.breealyzer.util.inventory.AnalyzerInventoryHandler;
 import ch.thenoobs.minecraft.breealyzer.util.inventory.ApiaryInventoryHandler;
+import ch.thenoobs.minecraft.breealyzer.util.trashing.TrashManager;
 import forestry.api.apiculture.EnumBeeType;
 import forestry.api.apiculture.IBee;
 import forestry.apiculture.items.ItemBeeGE;
@@ -36,6 +39,8 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	private InventoryHandlerEntityPair seedBankInventoryPair;
 	private InventoryHandlerEntityPair beeInventoryPair;
 	private InventoryHandlerEntityPair trashInventoryPair;	
+	
+	private TrashManager trashManager;
 	
 	private List<AnalyzerInventoryHandler> analyzers;
 	private List<ApiaryInventoryHandler> apiaries;
@@ -94,7 +99,11 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			if (analyzers.size() < 1) {
 				return;
 			}
-						
+			
+			if (trashManager == null) {
+				trashManager = new TrashManager();
+			}
+			
 			seedBankInventoryPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(inputSide).offset(EnumFacing.UP), outputSide.getOpposite());	
 			//System.out.println(String.format("Seed Bank Inventory found: %s.", (seedBankInventoryPair != null)));
 			
@@ -118,27 +127,39 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			if (beeAmountInAnalyzer <= 0) {
 				fillApiaries(beeInventoryPair);
 			}
+			
+			
+//			trashBees();
 		}
 	}
+	
+//	private void trashBees() {		
+//		Log.info("Trashing Bees");
+//		List<BeeWrapper> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class).stream()
+//				.filter(iSAT -> getTypeFromStackAtSlot(iSAT) == EnumBeeType.DRONE)
+//				.map(BreealyzerTE::wrapBee)
+//				.collect(Collectors.toList());
+//		trashManager.trashBees(bees, lootInventoryPair, beeInventoryPair);
+//	}
 
-	private List<ItemStackAtSlot> selectBees(List<ItemStackAtSlot> drones, List<ItemStackAtSlot> princesses, BeeSelector selector) {
+	private ScoringResult selectBees(List<ItemStackAt> drones, List<ItemStackAt> princesses, BeeSelector selector) {
 		List<BeeWrapper> wrappedDrones = drones.stream().map(BreealyzerTE::wrapBee).collect(Collectors.toList());
 		List<BeeWrapper> wrappedPrincesses = princesses.stream().map(BreealyzerTE::wrapBee).collect(Collectors.toList());
-		List<BeeWrapper> results = selector.selectBreedingPair(wrappedDrones, wrappedPrincesses);
-		return results.stream().map(wrappedBee -> (ItemStackAtSlot)wrappedBee.getObject()).collect(Collectors.toList());
+		ScoringResult results = selector.selectBreedingPair(wrappedDrones, wrappedPrincesses);
+		return results;
 	}
 
-	private static BeeWrapper wrapBee(ItemStackAtSlot iSTAT) {
+	private static BeeWrapper wrapBee(ItemStackAt iSTAT) {
 		BeeWrapper newWrapper = new BeeWrapper(((ItemBeeGE)iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack()), iSTAT);
 		return newWrapper;
 	}
 
-	private EnumBeeType getTypeFromStackAtSlot(ItemStackAtSlot iSTAT) {
+	private EnumBeeType getTypeFromStackAtSlot(ItemStackAt iSTAT) {
 		return ((ItemBeeGE)iSTAT.getStack().getItem()).getType();
 	}
 
 	private void analyzeBees() {
-		List<ItemStackAtSlot> unAnalyzedBees = getUnAnalyzedBees();
+		List<ItemStackAt> unAnalyzedBees = getUnAnalyzedBees();
 		int amount = fillAnalyzers(unAnalyzedBees, beeInventoryPair, analyzers);
 //		int amount = fillAnalyzer(beeInventoryPair, analyzerInventoryPair);
 		//		System.out.println("Analyzing " + amount + " bees");
@@ -156,13 +177,13 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		//		System.out.println("Bees in analyzer: " + beeAmountInAnalyzer);
 	}
 
-	private List<ItemStackAtSlot> getUnAnalyzedBees() {
-		List<ItemStackAtSlot> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class);
+	private List<ItemStackAt> getUnAnalyzedBees() {
+		List<ItemStackAt> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class);
 		
 		return bees.stream().filter(beeStack -> !getBeeFromISTAT(beeStack).isAnalyzed()).collect(Collectors.toList());
 	}
 	
-	private int fillAnalyzers(List<ItemStackAtSlot> bees, InventoryHandlerEntityPair workChest, List<AnalyzerInventoryHandler> analyzers) {
+	private int fillAnalyzers(List<ItemStackAt> bees, InventoryHandlerEntityPair workChest, List<AnalyzerInventoryHandler> analyzers) {
 		int cnt = bees.size()-1;
 		int totalAmount = 0;
 		while (cnt >= 0) {
@@ -175,7 +196,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	}
 	
 	
-	private IBee getBeeFromISTAT(ItemStackAtSlot iSTAT) {
+	private IBee getBeeFromISTAT(ItemStackAt iSTAT) {
 		return ((ItemBeeGE)iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack());
 	}
 	
@@ -245,12 +266,12 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	}
 	
 	private void fillApiary(InventoryHandlerEntityPair apiaryInventoryPair, InventoryHandlerEntityPair beeInventoryPair) {		
-		List<ItemStackAtSlot> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class);
+		List<ItemStackAt> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class);
 		
-		Map<EnumBeeType, List<ItemStackAtSlot>> beeMap = bees.stream().collect(Collectors.groupingBy(this::getTypeFromStackAtSlot));
+		Map<EnumBeeType, List<ItemStackAt>> beeMap = bees.stream().collect(Collectors.groupingBy(this::getTypeFromStackAtSlot));
 
-		List<ItemStackAtSlot> drones = beeMap.get(EnumBeeType.DRONE);
-		List<ItemStackAtSlot> princesses = beeMap.get(EnumBeeType.PRINCESS);
+		List<ItemStackAt> drones = beeMap.get(EnumBeeType.DRONE);
+		List<ItemStackAt> princesses = beeMap.get(EnumBeeType.PRINCESS);
 		
 		if (drones == null || princesses == null) {
 			return;
@@ -260,12 +281,14 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		selector.initScoreres("Cultivated");
 		selector.initWeights();
 		
-		List<ItemStackAtSlot> selectedBees = selectBees(drones, princesses, selector);
-		ItemStackAtSlot selectedDrone = selectedBees.get(1);
-		ItemStackAtSlot selectedPrincess =  selectedBees.get(0);
+		ScoringResult scoringResult = selectBees(drones, princesses, selector);
+		ItemStackAt selectedDrone = scoringResult.getSelectedDrone().getBeeWrapper().getItemStackAt();
+		ItemStackAt selectedPrincess =  scoringResult.getSelectedPrincess().getBeeWrapper().getItemStackAt();
 
 		InventoryUtil.moveItemAmount(apiaryInventoryPair, 0, beeInventoryPair, selectedPrincess.getSlot(), 1);
 		InventoryUtil.moveItemAmount(apiaryInventoryPair, 1, beeInventoryPair, selectedDrone.getSlot(), 1);
+		
+		trashManager.trashBees(scoringResult.getLeftoverDrones(), lootInventoryPair, beeInventoryPair);
 	}
 	
 	public void clearApiaries() {
