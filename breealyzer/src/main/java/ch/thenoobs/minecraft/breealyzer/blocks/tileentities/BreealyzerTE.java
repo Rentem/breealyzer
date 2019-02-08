@@ -95,12 +95,26 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			if (apiaries.size() < 1) {
 				return;
 			}
+			/*
+			else
+			{
+				for (ApiaryInventoryHandler handler : apiaries) {
+					handler.getEnvironment();
+				}
+			}*/
 			
 			analyzers = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(analyzerSide), TileAnalyzer.class, analyzerSide, false);
 			
 			if (analyzers.size() < 1) {
 				return;
 			}
+			/*
+			else
+			{
+				for (AnalyzerInventoryHandler handler : analyzers) {
+					Log.info("Analyzer is Busy: {}", handler.getIsBusy() );
+				}
+			}*/
 			
 			if (trashManager == null) {
 				trashManager = new TrashManager();

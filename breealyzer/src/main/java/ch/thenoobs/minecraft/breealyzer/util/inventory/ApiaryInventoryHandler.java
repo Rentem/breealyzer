@@ -29,7 +29,9 @@ public class ApiaryInventoryHandler extends InventoryHandler {
 		
 		this.environmentInformation.setBlockLightValue(this.tileEntity.getBlockLightValue());
 		this.environmentInformation.setIsSkyVisible(this.tileEntity.canBlockSeeTheSky());
-		
+				
+		//this.environmentInformation.setHasFlowers(this.tileEntity.getBeekeepingLogic().getFlowerPositions().size() > 0);
+				
 		return environmentInformation;
 	}
 }

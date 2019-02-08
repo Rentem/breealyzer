@@ -32,4 +32,11 @@ public class AnalyzerInventoryHandler  extends InventoryHandler {
 		
 		return result;
 	}
+	
+	public Boolean getIsBusy()
+	{
+		return this.tileAnalyzer.workCycle();
+		
+		//return this.tileAnalyzer.get
+	}
 }
