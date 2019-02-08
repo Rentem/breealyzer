@@ -11,42 +11,54 @@ import net.minecraftforge.items.IItemHandler;
 
 public class InventoryFactory {
 	private static HashMap<String, Class<? extends InventoryHandler>> typeMappings = new HashMap<String, Class<? extends InventoryHandler>>();
+	private static HashMap<TileEntity, InventoryHandler> inventoryHandlers = new HashMap<TileEntity, InventoryHandler>();
 	
 	public static <T extends InventoryHandler> T GetInvenotryHandler(TileEntity tileEntity, IItemHandler itemHandler) {				
 		T inventoryHandler = null;
-
-		String typeName = tileEntity.getClass().getName();
-				
-		Class<? extends InventoryHandler> handlerType = typeMappings.get(typeName);		
 		
-		Log.info("Getting Inventory Handler for type {}", tileEntity.getClass().getName());
+		InventoryHandler cachedHandler = inventoryHandlers.get(tileEntity); 
 		
-		if (handlerType != null) {			
-			try {
-				Constructor<?> constructor = handlerType.getConstructor(tileEntity.getClass(), IItemHandler.class);
-				
-				inventoryHandler = (T)constructor.newInstance(tileEntity, itemHandler);
-			} catch (NoSuchMethodException e) {
-				e.printStackTrace();
-			} catch (SecurityException e) {
+		if (cachedHandler == null)
+		{
+			String typeName = tileEntity.getClass().getName();
+			
+			Class<? extends InventoryHandler> handlerType = typeMappings.get(typeName);		
+						
+			if (handlerType != null) {			
+				try {
+					Constructor<?> constructor = handlerType.getConstructor(tileEntity.getClass(), IItemHandler.class);
+					
+					inventoryHandler = (T)constructor.newInstance(tileEntity, itemHandler);
+					
+					inventoryHandlers.put(tileEntity, inventoryHandler);
+				} catch (NoSuchMethodException e) {
+					e.printStackTrace();
+				} catch (SecurityException e) {
 
-				e.printStackTrace();
-			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+					e.printStackTrace();
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else {
+				inventoryHandler = (T) new InventoryHandler(tileEntity, itemHandler);
+				
+				inventoryHandlers.put(tileEntity, inventoryHandler);
 			}
-		} else {
-			inventoryHandler = (T) new InventoryHandler(tileEntity, itemHandler);
 		}
+		else {
+			inventoryHandler = (T)cachedHandler;
+		}
+			
 				
 		return inventoryHandler;
 	}

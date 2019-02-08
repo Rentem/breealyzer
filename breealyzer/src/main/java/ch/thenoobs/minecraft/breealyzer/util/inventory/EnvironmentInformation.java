@@ -1,5 +1,6 @@
 package ch.thenoobs.minecraft.breealyzer.util.inventory;
 
+import ch.thenoobs.minecraft.breealyzer.util.Log;
 import forestry.api.core.EnumHumidity;
 import forestry.api.core.EnumTemperature;
 import net.minecraft.world.biome.Biome;
@@ -11,6 +12,7 @@ public class EnvironmentInformation {
 	private float exactHumidity;
 	private EnumHumidity humidity;
 	private int blockLightValue;
+	private Boolean isSkyVisible;
 
 	public Biome getBiome() {
 		return this.biome;
@@ -50,5 +52,14 @@ public class EnvironmentInformation {
 
 	public void setTemperature(EnumTemperature temperature) {
 		this.temperature = temperature;
+	}
+	
+	public Boolean getIsSkyVisible()
+	{
+		return this.isSkyVisible;
+	}
+	
+	public void setIsSkyVisible(Boolean isSkyVisible) 	{
+		this.isSkyVisible = isSkyVisible;
 	}
 }

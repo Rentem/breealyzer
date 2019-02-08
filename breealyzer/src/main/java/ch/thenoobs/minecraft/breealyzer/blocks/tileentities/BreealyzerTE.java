@@ -97,8 +97,8 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			}
 			
 			for (ApiaryInventoryHandler apiaryInventoryHandler : apiaries ) {
-				EnvironmentInformation environmentInformation = apiaryInventoryHandler.getEnvironment();
-				Log.info("Biome: {}\tTemperature: {}\tLight: {}\tHumidity: {}\tExactHumidity: {}",  environmentInformation.getBiome(), environmentInformation.getTemperature(), environmentInformation.getBlockLightValue(), environmentInformation.getHumidity(), environmentInformation.getExactHumidity());
+				EnvironmentInformation environmentInformation = apiaryInventoryHandler.getEnvironment();				
+				Log.info("Environment: Biome: {}\tTemperature: {}\tLight: {}\tHumidity: {}\tExactHumidity: {}\tSkyVisible: {}",  environmentInformation.getBiome(), environmentInformation.getTemperature(), environmentInformation.getBlockLightValue(), environmentInformation.getHumidity(), environmentInformation.getExactHumidity(), environmentInformation.getIsSkyVisible());
 			}
 
 			analyzers = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(analyzerSide), TileAnalyzer.class, analyzerSide, false);
