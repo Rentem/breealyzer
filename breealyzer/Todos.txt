@@ -4,7 +4,7 @@
    - use SeedBank for Selection (and refill?)
    - clean SeedBank (purify for best value for each Trait)
    - 
- - Productive Mode (reuse drone & pricess without analysing) 
+ - Productive Mode (reuse drone & princess without analysing) 
  - Add Environment check (take environment into consideration when selecting Queen / Princess) - Environment can be taken from the InventoryHandler.
  - Milk Queens until they die... (to create princesses)
  - Add breeding mode where a certain target species is set in the tree. breealyzer will try to achieve this with the given resources. if not achievable, display error (missing species / trait).
@@ -15,10 +15,11 @@
  - speed up breeding/production for special materials (consuming)
  - recurring: Improve selection algorithm -  :)
  - Trash for unused Bees (nullyFier) or does other mod offer it?
+ - Check honey reserves for analyzers (possible to get the Fluid amount from AnalyzerInventoryHandler.getTankFluidAmount())
  
  WIP:
  	XpA:  
-  	- Check honey reserves for analyzers
+  	- Add Flower to EnvironmentInformation
   
   Done:
  - Change apiary side to rear
