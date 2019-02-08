@@ -9,7 +9,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import ch.thenoobs.minecraft.breealyzer.util.InventoryHandlerEntityPair;
+import ch.thenoobs.minecraft.breealyzer.util.InventoryHandler;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryUtil;
 import ch.thenoobs.minecraft.breealyzer.util.ItemStackAt;
 import ch.thenoobs.minecraft.breealyzer.util.Log;
@@ -41,7 +41,7 @@ public class TrashManager {
 		reqisterDefaultConditions();
 	}
 
-	public void trashBees(List<BeeScore> bees, InventoryHandlerEntityPair beeTrash, InventoryHandlerEntityPair seedBank) {
+	public void trashBees(List<BeeScore> bees, InventoryHandler beeTrash, InventoryHandler seedBank) {
 		Log.info("Trashing Bees");
 		Map<Boolean, List<BeeScore>> sortedBees = sortBeesForTrashing(bees);
 		if (sortedBees.containsKey(true)) {

@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 
 import com.google.common.collect.Lists;
 
-import ch.thenoobs.minecraft.breealyzer.util.InventoryHandlerEntityPair;
+import ch.thenoobs.minecraft.breealyzer.util.InventoryHandler;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryUtil;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -34,12 +34,12 @@ public class AutomaticMoverTE extends TileEntity implements ITickable {
 
 			EnumFacing target = EnumFacing.UP;
 
-			final InventoryHandlerEntityPair targetPair = InventoryUtil.getInventoryHandlerEntityPair(world, pos.offset(target), target.getOpposite());
+			final InventoryHandler targetPair = InventoryUtil.getInventoryHandler(world, pos.offset(target), target.getOpposite());
 			if (targetPair == null) {
 				return;
 			}
-			List<InventoryHandlerEntityPair> neighbors = InventoryUtil.getNeighbourInventoryHandlerEntity(world, pos);
-			for (InventoryHandlerEntityPair neighbourPair : neighbors) {
+			List<InventoryHandler> neighbors = InventoryUtil.getNeighbourInventoryHandlerEntity(world, pos);
+			for (InventoryHandler neighbourPair : neighbors) {
 				InventoryUtil.emptyInventory(targetPair, neighbourPair);
 				//				for (int sourceSlot = 0; sourceSlot < neigh.getSlots(); sourceSlot++) {
 				//					final ItemStack stackToPull = neigh.getStackInSlot(sourceSlot);

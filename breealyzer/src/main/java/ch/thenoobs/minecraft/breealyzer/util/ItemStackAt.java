@@ -5,9 +5,9 @@ import net.minecraft.item.ItemStack;
 public class ItemStackAt {
 	private ItemStack stack;
 	private int slot;
-	private InventoryHandlerEntityPair inventory;
+	private InventoryHandler inventory;
 	
-	public ItemStackAt(ItemStack stack, int slot, InventoryHandlerEntityPair inventory) {
+	public ItemStackAt(ItemStack stack, int slot, InventoryHandler inventory) {
 		this.stack = stack;
 		this.slot = slot;
 		this.inventory = inventory;
@@ -16,21 +16,24 @@ public class ItemStackAt {
 	public ItemStack getStack() {
 		return stack;
 	}
+	
 	public void setStack(ItemStack stack) {
 		this.stack = stack;
 	}
+	
 	public int getSlot() {
 		return slot;
 	}
+	
 	public void setSlot(int slot) {
 		this.slot = slot;
 	}
 
-	public InventoryHandlerEntityPair getInventory() {
+	public InventoryHandler getInventory() {
 		return inventory;
 	}
 
-	public void setInventory(InventoryHandlerEntityPair inventory) {
+	public void setInventory(InventoryHandler inventory) {
 		this.inventory = inventory;
 	}	
 }
