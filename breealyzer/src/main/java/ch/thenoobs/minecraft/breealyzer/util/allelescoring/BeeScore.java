@@ -10,6 +10,7 @@ public class BeeScore {
 	private BeeWrapper beeWrapper;
 	private Map<IChromosomeType, Float> chromosomeScores = new HashMap<>();
 	private float totalScore;	
+	private float relativeScore;	
 	
 	public BeeScore(BeeWrapper beeWrapper) {
 		this.beeWrapper = beeWrapper;
@@ -34,5 +35,15 @@ public class BeeScore {
 
 	public void setTotalScore(float totalScore) {
 		this.totalScore = totalScore;
+	}
+
+
+	public float getRelativeScore() {
+		return relativeScore;
+	}
+
+
+	public void setRelativeScore(float relativeScore) {
+		this.relativeScore = relativeScore;
 	}
 }

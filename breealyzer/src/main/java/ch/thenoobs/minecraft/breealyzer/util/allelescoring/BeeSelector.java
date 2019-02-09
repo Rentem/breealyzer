@@ -1,7 +1,6 @@
 package ch.thenoobs.minecraft.breealyzer.util.allelescoring;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +9,9 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.ibm.icu.util.BytesTrie.Result;
+
+import ch.thenoobs.minecraft.breealyzer.util.Log;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.AlleleScorer;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.AreaAlleleScorer;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.BeeEffectAlleleScorer;
@@ -20,9 +22,7 @@ import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.IntegerAllele
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.SpeciesAlleleScorer;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.ToleranceAlleleScorer;
 import forestry.api.apiculture.EnumBeeChromosome;
-import forestry.api.genetics.IChromosome;
 import forestry.api.genetics.IChromosomeType;
-import net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent.Pre;
 
 public class BeeSelector {
 	private Map<IChromosomeType, AlleleScorer> chromosomeScorers;
@@ -31,57 +31,80 @@ public class BeeSelector {
 
 	public ScoringResult selectBreedingPair(List<BeeWrapper> drones, List<BeeWrapper> princesses) {
 		if (chromosomeScorers == null) {
-			return null; //TODO exception?
+			return null; // TODO exception?
 		}
 		if (chromosomeWeights == null) {
-			return null; //TODO exception?
+			return null; // TODO exception?
 		}
-		System.out.println("---------Selecting from " + princesses.size() + " princesses and " + drones.size() + " drones");
+		Log.info("---------Selecting from " + princesses.size() + " princesses and " + drones.size() + " drones");
 
 		List<BeeScore> droneScores = drones.stream().map(BeeScore::new).collect(Collectors.toList());
-		List<BeeScore> prinecessesScores = princesses.stream().map(BeeScore::new).collect(Collectors.toList());
+		List<BeeScore> princessesScores = princesses.stream().map(BeeScore::new).collect(Collectors.toList());
 
-		List<BeeScore> beeList = new ArrayList<>(droneScores.size() + prinecessesScores.size());
+		List<BeeScore> beeList = new ArrayList<>(droneScores.size() + princessesScores.size());
 		beeList.addAll(droneScores);
-		beeList.addAll(prinecessesScores);
-
+		beeList.addAll(princessesScores);
 
 		for (IChromosomeType chromosome : weightSortedChromosomes) {
 			AlleleScorer scorer = chromosomeScorers.get(chromosome);
 			scorer.socoreBees(beeList);
 		}
 
-		System.out.println("---------princesses ");
-		prinecessesScores = calculateAndSortBeeScoreList(prinecessesScores);
+		Log.info("---------princesses ");
+		princessesScores = calculateAndSortBeeScoreList(princessesScores);
 
-		System.out.println("---------drones");
-		droneScores = calculateAndSortBeeScoreListRelative(droneScores, prinecessesScores.get(0));
+		Log.info("---------drones");
+		droneScores = calculateAndSortBeeScoreListRelative(droneScores, princessesScores.get(0));
+
+		BeeScore droneMax = droneScores.stream().reduce(this::getBeeScoreWithBiggerTotal).orElse(null);
+		
+
+		Log.info("max drone:");
+		printBeeScore(droneMax);
 
 		ScoringResult result = new ScoringResult();
-		result.setSelectedPrincess(prinecessesScores.get(0));
-		result.setSelectedDrone(droneScores.get(0));
-		System.out.println("---------princesses ");
-		printBeeScore(prinecessesScores.get(0));
-		System.out.println("---------drones ");
-		printBeeScore(droneScores.get(0));
-		droneScores.remove(0);
-		prinecessesScores.remove(0);
+		result.setSelectedPrincess(princessesScores.get(0));
+		Log.info("--------- selected princess");
+		printBeeScore(result.getSelectedPrincess());
+		princessesScores.remove(0);
+
+		Log.info("--------- selected drone");
+		if (droneMax.getBeeWrapper().getItemStackAt().getStack().getCount() < 2) {
+			Log.info("using max drone: low max count");
+			result.setSelectedDrone(droneMax);
+			droneScores.remove(droneMax);
+		} else 
+			if (droneMax.getTotalScore() < result.getSelectedPrincess().getTotalScore()) {
+			Log.info("using max drone: better princess");
+			result.setSelectedDrone(droneMax);
+			droneScores.remove(droneMax);
+		} else {
+			if (droneMax.getTotalScore() - result.getSelectedPrincess().getTotalScore() > droneScores.get(0).getTotalScore()) {
+				Log.info("using max drone: difference");
+				result.setSelectedDrone(droneMax);
+				droneScores.remove(droneMax);
+			} else {
+				result.setSelectedDrone(droneScores.get(0));
+				droneScores.remove(0);
+			}
+		}
+
+		printBeeScore(result.getSelectedDrone());
 		result.setLeftoverDrones(droneScores);
-		result.setLeftoverPrincesses(prinecessesScores);
-		
+		result.setLeftoverPrincesses(princessesScores);
+
 		return result;
 	}
 
 	public BeeWrapper selectBeeFromList(List<BeeWrapper> bees) {
 		if (chromosomeScorers == null) {
-			return null; //TODO exception?
+			return null; // TODO exception?
 		}
 		if (chromosomeWeights == null) {
-			return null; //TODO exception?
+			return null; // TODO exception?
 		}
 
 		List<BeeScore> beeScores = bees.stream().map(BeeScore::new).collect(Collectors.toList());
-
 
 		for (IChromosomeType chromosome : weightSortedChromosomes) {
 			AlleleScorer scorer = chromosomeScorers.get(chromosome);
@@ -92,61 +115,68 @@ public class BeeSelector {
 	}
 
 	private List<BeeScore> calculateAndSortBeeScoreListRelative(List<BeeScore> beeScores, BeeScore compareScore) {
-		List<BeeScore> sortedList = beeScores.stream()
-				.map(beeScore -> calculateRelativeScore(beeScore, compareScore))
-				.sorted(this::compareBeeScore)
-				.peek(beeScore -> System.out.println(String.format("%-15s%s%-15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore)))
+		List<BeeScore> sortedList = beeScores.stream().map(beeScore -> calculateRelativeScore(beeScore, compareScore)).map(this::calculateTotalScore).sorted(this::compareBeeScore)
+				.peek(this::printBeeScore)
+				// .peek(beeScore -> Log.info(String.format("%-15s%s%-15s",
+				// beeScore.getBee().getDisplayName(), " ",
+				// Float.toString(beeScore.getTotalScore())) + " -- " +
+				// getBeeScoreString(beeScore)))
 				.collect(Collectors.toList());
 		return sortedList;
 	}
-
 
 	private List<BeeScore> calculateAndSortBeeScoreList(List<BeeScore> beeScores) {
-		List<BeeScore> sortedList = beeScores.stream()
-				.map(this::calculateTotalScore)
-				.sorted(this::compareBeeScore)
-				.peek(this::printBeeScore)
-				.collect(Collectors.toList());
+		List<BeeScore> sortedList = beeScores.stream().map(this::calculateTotalScore).sorted(this::compareBeeScore).peek(this::printBeeScore).collect(Collectors.toList());
 		return sortedList;
 	}
-	
+
 	private void printBeeScore(BeeScore beeScore) {
-		System.out.println(String.format("%-15s%s%-15s", beeScore.getBee().getDisplayName(), " ", Float.toString(beeScore.getTotalScore())) + " -- " + getBeeScoreString(beeScore));
+		Log.info(String.format("%-15s%s%-15s", beeScore.getBee().getDisplayName() + "(" + beeScore.getBeeWrapper().getItemStackAt().getStack().getCount() + ")", " ", getTotalRelativeScoreString(beeScore)) + " -- " + getBeeScoreString(beeScore));
 	}
-	
-	private int compareBeeScore(BeeScore bee1, BeeScore bee2)  {
+
+	private static String getTotalRelativeScoreString(BeeScore beeScore) {
+		return String.format("%10s%s%-10s", Float.toString(beeScore.getTotalScore()), "/", Float.toString(beeScore.getRelativeScore()));
+	}
+
+	private int compareBeeScore(BeeScore bee1, BeeScore bee2) {
+		int relativeComp = Float.compare(bee2.getRelativeScore(), bee1.getRelativeScore());
+		if (relativeComp != 0) {
+			return relativeComp;
+		}
 		return Float.compare(bee2.getTotalScore(), bee1.getTotalScore());
 	}
-		
+
+	private BeeScore getBeeScoreWithBiggerTotal(BeeScore bee1, BeeScore bee2) {
+		if (Float.compare(bee2.getTotalScore(), bee1.getTotalScore()) > 0) {
+			return bee2;
+		}
+		return bee1;
+	}
 
 	private String getBeeScoreString(BeeScore beeScore) {
 		StringJoiner strJoiner = new StringJoiner(" ");
 		for (IChromosomeType chrom : weightSortedChromosomes) {
 			Float score = beeScore.getChromosomeScores().get(chrom);
-			String out = String.format("%15s%s%-15s", chrom.getName(),": ", Float.toString(score));
-			//			String out = String.format("%20s%s", score.getKey().getName(),": ");
+			String out = String.format("%12s%s%-12s", chrom.getName(), ": ", Float.toString(score));
+			// String out = String.format("%20s%s", score.getKey().getName(),": ");
 			strJoiner.add(out);
-			//			strJoiner.add( + ": " + ));
+			// strJoiner.add( + ": " + ));
 
 		}
 		return strJoiner.toString();
 	}
 
 	private BeeScore calculateTotalScore(BeeScore beeScore) {
-		float total = beeScore.getChromosomeScores().entrySet().stream()
-				.map(entry -> calculateScore(entry.getValue(), getWeightFromMap(entry.getKey())))
-				.reduce((f1,f2) -> f1 + f2).orElse((float) 0);
+		float total = beeScore.getChromosomeScores().entrySet().stream().map(entry -> calculateScore(entry.getValue(), getWeightFromMap(entry.getKey()))).reduce((f1, f2) -> f1 + f2).orElse((float) 0);
 
 		beeScore.setTotalScore(total);
 		return beeScore;
 	}
 
 	private BeeScore calculateRelativeScore(BeeScore beeScore, BeeScore compareScore) {
-		float total = beeScore.getChromosomeScores().entrySet().stream()
-				.map(entry -> calculateRelativeScore(compareScore, entry))
-				.reduce((f1,f2) -> f1 + f2).orElse((float) 0);
+		float total = beeScore.getChromosomeScores().entrySet().stream().map(entry -> calculateRelativeScore(compareScore, entry)).reduce((f1, f2) -> f1 + f2).orElse((float) 0);
 
-		beeScore.setTotalScore(total);
+		beeScore.setRelativeScore(total);
 		return beeScore;
 	}
 
@@ -200,24 +230,24 @@ public class BeeSelector {
 		weightSortedChromosomes = chromosomeWeights.entrySet().stream().sorted(BeeSelector::getBiggerWeight).map(entry -> entry.getKey()).collect(Collectors.toList());
 		StringJoiner stringJoiner = new StringJoiner(", ");
 		for (IChromosomeType chrom : weightSortedChromosomes) {
-			stringJoiner.add(chrom.toString() + ":" + chromosomeWeights.get(chrom).getWeight());
+			stringJoiner.add(chrom.toString() + ":" + chromosomeWeights.get(chrom).getWeight() + "(" + chromosomeWeights.get(chrom).isInverse() + ")");
 		}
-		System.out.println("sorted chromosomes: " + stringJoiner.toString());
-
+		Log.info("sorted chromosomes: " + stringJoiner.toString());
 
 	}
 
 	private static int getBiggerWeight(Entry<IChromosomeType, ChromosomeWeight> w1, Entry<IChromosomeType, ChromosomeWeight> w2) {
-		//		if (w1.getValue().getWeight() > w2.getValue().getWeight()) {
-		//			System.out.println(w1.getKey()+ ":" + w1.getValue().getWeight() + ">" + w2.getKey()+ ":" + w2.getValue().getWeight());
-		//			return 1;
-		//		}
+		// if (w1.getValue().getWeight() > w2.getValue().getWeight()) {
+		// Log.info(w1.getKey()+ ":" + w1.getValue().getWeight() + ">" + w2.getKey()+
+		// ":" + w2.getValue().getWeight());
+		// return 1;
+		// }
 		return -Float.compare(w1.getValue().getWeight(), w2.getValue().getWeight());
-		//		return w1.getValue().getWeight().comw2.getValue().getWeight();
-		//		System.out.println(w1.getKey()+ ":" + w1.getValue().getWeight() + "<" + w2.getKey()+ ":" + w2.getValue().getWeight());
-		//		return -1;
+		// return w1.getValue().getWeight().comw2.getValue().getWeight();
+		// Log.info(w1.getKey()+ ":" + w1.getValue().getWeight() + "<" + w2.getKey()+
+		// ":" + w2.getValue().getWeight());
+		// return -1;
 	}
-
 
 	public void initWeights() {
 		chromosomeWeights = new HashMap<>();
@@ -237,7 +267,7 @@ public class BeeSelector {
 		initSortedChromosomes();
 	}
 
-	public void initScoreres(String targetSpecies) {		
+	public void initScoreres(String targetSpecies) {
 		chromosomeScorers = new HashMap<>();
 		if (targetSpecies != null) {
 			chromosomeScorers.put(EnumBeeChromosome.SPECIES, new SpeciesAlleleScorer(EnumBeeChromosome.SPECIES, targetSpecies));

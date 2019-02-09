@@ -3,10 +3,10 @@ package ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers;
 import java.util.HashMap;
 import java.util.Map;
 
+import ch.thenoobs.minecraft.breealyzer.util.Log;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.ScoringException;
 import forestry.api.apiculture.IAlleleBeeEffect;
 import forestry.api.apiculture.IBee;
-import forestry.api.genetics.IAlleleFlowers;
 import forestry.api.genetics.IChromosomeType;
 
 public class BeeEffectAlleleScorer extends AlleleScorer {
@@ -14,9 +14,11 @@ public class BeeEffectAlleleScorer extends AlleleScorer {
 	public static Map<String, Long> effectValues = new HashMap<>();
 	static {
 		effectValues.put("None".toLowerCase(), 5L);
-		effectValues.put("Repulsion".toLowerCase(), 6L);
 		effectValues.put("beatific".toLowerCase(), 7L);
+		effectValues.put("fertile".toLowerCase(), 7L);
+		effectValues.put("Repulsion".toLowerCase(), 6L);
 		effectValues.put("radioact.".toLowerCase(), 1L);
+		effectValues.put("water".toLowerCase(), 1L);
 	}
 	
 	public BeeEffectAlleleScorer(IChromosomeType chromosomeType) {
@@ -41,7 +43,7 @@ public class BeeEffectAlleleScorer extends AlleleScorer {
 		String name = allele.getAlleleName().toLowerCase();
 		Long value = effectValues.get(name);
 		if (value == null) {
-			System.err.println("BeeEffectAlleceScorer, toleranceIAlleleBeeEffect not found: " + name);
+			Log.warning(	"BeeEffectAlleScorer, BeeEffect not found: " + name);
 			return 0L;
 		}
 		return value;

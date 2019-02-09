@@ -1,11 +1,13 @@
  - Throw trashy drones into waste bin
    - SeedBank has 5 Drones for each trait (using best trait value) 
+   - use stack count not only stacks
    - differentiate seedBank and workchest (bestScores to workchest)
    - use SeedBank for Selection (and refill?)
    - clean SeedBank (purify for best value for each Trait)
    - 
- - Productive Mode (reuse drone & princess without analysing) 
- - Add Environment check (take environment into consideration when selecting Queen / Princess) - Environment can be taken from the InventoryHandler.
+ - Productive Mode (reuse drone & princess without analysing)
+ - Check honey reserves for analyzers
+ - Add Environment check (take environment into consideration when selecting Queen / Princess
  - Milk Queens until they die... (to create princesses)
  - Add breeding mode where a certain target species is set in the tree. breealyzer will try to achieve this with the given resources. if not achievable, display error (missing species / trait).
  - Breed all possible Bees
@@ -16,7 +18,9 @@
  - recurring: Improve selection algorithm -  :)
  - Trash for unused Bees (nullyFier) or does other mod offer it?
  - Check honey reserves for analyzers (possible to get the Fluid amount from AnalyzerInventoryHandler.getTankFluidAmount())
- 
+ - breeding log
+ - commands & flags
+  
  WIP:
  	XpA:  
   	- Add Flower to EnvironmentInformation

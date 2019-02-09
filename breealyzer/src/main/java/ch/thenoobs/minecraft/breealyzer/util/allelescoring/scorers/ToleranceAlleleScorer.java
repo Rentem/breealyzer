@@ -60,7 +60,7 @@ public class ToleranceAlleleScorer extends AlleleScorer {
 		String name = allele.getValue().name().toLowerCase();
 		Long value = toleranceValues.get(name);
 		if (value == null) {
-			System.err.println("ToleranceAlleceScorer, toleranceIAlleleBeeEffect not found: " + name);
+			System.err.println("ToleranceAlleceScorer, toleranceIAllele not found: " + name);
 			return 0L;
 		}
 		return value;

@@ -1,6 +1,7 @@
 package ch.thenoobs.minecraft.breealyzer.util.trashing;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,11 +67,16 @@ public class TrashManager {
 		for (BeeScore bee : bees) {
 			for (Entry<IChromosomeType, BiFunction<BeeScore, Map<String, List<BeeScore>>, Boolean>> entry : registerdGlobalTrashConditions.entrySet()) {
 				selectedBees.putIfAbsent(entry.getKey(), new HashMap<String, List<BeeScore>>());
-				entry.getValue().apply(bee, selectedBees.get(entry.getKey()));					
+				entry.getValue().apply(bee, selectedBees.get(entry.getKey()));
 			}
-			
+
 		}
-		List<BeeScore> bestScores = bees.subList(0, 4);
+		List<BeeScore> bestScores;
+		if (bees.size() > 5) {
+			 bestScores = bees.subList(0, 4);
+		} else {
+			bestScores = Collections.emptyList();
+		}
 		Stream<BeeScore> selectedBeeStream = selectedBees.values().stream().flatMap(m -> m.values().stream()).flatMap(List::stream);
 		List<BeeScore> uniqueBees = Stream.concat(bestScores.stream(), selectedBeeStream).distinct().collect(Collectors.toList());
 		return bees.stream().collect(Collectors.groupingBy(bee -> uniqueBees.contains(bee)));
@@ -90,52 +96,50 @@ public class TrashManager {
 		registerdGlobalTrashConditions.putIfAbsent(EnumBeeChromosome.TERRITORY, this::selectBeeTerritory);
 		registerdGlobalTrashConditions.putIfAbsent(EnumBeeChromosome.SPEED, this::selectBeeSpeed);
 		registerdGlobalTrashConditions.putIfAbsent(EnumBeeChromosome.SPECIES, this::selectBeeSpecies);
-		
+
 	}
-	
-	
-	
-	public Boolean selectBeeSpecies(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {	
-		IAlleleSpecies allele1 = (IAlleleSpecies) bee.getBee().getGenome().getActiveAllele(EnumBeeChromosome.SPECIES);	
+
+	public Boolean selectBeeSpecies(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {
+		IAlleleSpecies allele1 = (IAlleleSpecies) bee.getBee().getGenome().getActiveAllele(EnumBeeChromosome.SPECIES);
 		String name1 = allele1.getAlleleName();
-		return selectBeeGeneric(bee, selectedBees,  EnumBeeChromosome.SPECIES, SpeciesAlleleScorer::scoreBee, name1, false);
+		return selectBeeGeneric(bee, selectedBees, EnumBeeChromosome.SPECIES, SpeciesAlleleScorer::scoreBee, name1, false);
 	}
-	
+
 	public Boolean selectBeeSpeed(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {
 		return selectBeeGenericDefault(bee, selectedBees, EnumBeeChromosome.SPEED, FloatAlleleScorer::scoreBee);
 	}
-	
-	public Boolean selectBeeFlowerProvider(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {	
-		IAlleleFlowers allele1 = (IAlleleFlowers) bee.getBee().getGenome().getActiveAllele(EnumBeeChromosome.FLOWER_PROVIDER);	
+
+	public Boolean selectBeeFlowerProvider(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {
+		IAlleleFlowers allele1 = (IAlleleFlowers) bee.getBee().getGenome().getActiveAllele(EnumBeeChromosome.FLOWER_PROVIDER);
 		String name1 = allele1.getAlleleName();
-		return selectBeeGeneric(bee, selectedBees,  EnumBeeChromosome.FLOWER_PROVIDER, FlowerAlleleScorer::scoreBee, name1, false);
+		return selectBeeGeneric(bee, selectedBees, EnumBeeChromosome.FLOWER_PROVIDER, FlowerAlleleScorer::scoreBee, name1, false);
 	}
-	
-	public Boolean selectBeeEffect(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {	
-		IAlleleBeeEffect allele1 = (IAlleleBeeEffect) bee.getBee().getGenome().getActiveAllele(EnumBeeChromosome.EFFECT);	
+
+	public Boolean selectBeeEffect(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {
+		IAlleleBeeEffect allele1 = (IAlleleBeeEffect) bee.getBee().getGenome().getActiveAllele(EnumBeeChromosome.EFFECT);
 		String name1 = allele1.getAlleleName();
-		return selectBeeGeneric(bee, selectedBees,  EnumBeeChromosome.EFFECT, BeeEffectAlleleScorer::scoreBee, name1, false);
+		return selectBeeGeneric(bee, selectedBees, EnumBeeChromosome.EFFECT, BeeEffectAlleleScorer::scoreBee, name1, false);
 	}
-	
+
 	public Boolean selectBeeTerritory(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {
 		if (selectBeeGenericDefault(bee, selectedBees, EnumBeeChromosome.TERRITORY, AreaAlleleScorer::scoreBee)) {
 			return true;
 		}
-		return selectBeeGeneric(bee, selectedBees,  EnumBeeChromosome.TERRITORY, AreaAlleleScorer::scoreBee, "inverse", true);
+		return selectBeeGeneric(bee, selectedBees, EnumBeeChromosome.TERRITORY, AreaAlleleScorer::scoreBee, "inverse", true);
 	}
-	
+
 	public Boolean selectBeeLifespan(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {
 		if (selectBeeGenericDefault(bee, selectedBees, EnumBeeChromosome.LIFESPAN, IntegerAlleleScorer::scoreBee)) {
 			return true;
 		}
-		return selectBeeGeneric(bee, selectedBees,  EnumBeeChromosome.LIFESPAN, IntegerAlleleScorer::scoreBee, "inverse", true);
+		return selectBeeGeneric(bee, selectedBees, EnumBeeChromosome.LIFESPAN, IntegerAlleleScorer::scoreBee, "inverse", true);
 	}
-	
+
 	public Boolean selectBeeFlowering(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {
 		if (selectBeeGenericDefault(bee, selectedBees, EnumBeeChromosome.FLOWERING, IntegerAlleleScorer::scoreBee)) {
 			return true;
 		}
-		return selectBeeGeneric(bee, selectedBees,  EnumBeeChromosome.FLOWERING, IntegerAlleleScorer::scoreBee, "inverse", true);
+		return selectBeeGeneric(bee, selectedBees, EnumBeeChromosome.FLOWERING, IntegerAlleleScorer::scoreBee, "inverse", true);
 	}
 
 	public Boolean selectBeeFertilty(BeeScore bee, Map<String, List<BeeScore>> selectedBees) {
@@ -165,8 +169,6 @@ public class TrashManager {
 	public Boolean selectBeeGenericDefault(BeeScore bee, Map<String, List<BeeScore>> selectedBeesMap, IChromosomeType chromosomeType, TraitScorer scorer) {
 		return selectBeeGeneric(bee, selectedBeesMap, chromosomeType, scorer, "default", false);
 	}
-	
-	
 
 	public Boolean selectBeeGeneric(BeeScore bee, Map<String, List<BeeScore>> selectedBeesMap, IChromosomeType chromosomeType, TraitScorer scorer, String key, boolean inverse) {
 		try {

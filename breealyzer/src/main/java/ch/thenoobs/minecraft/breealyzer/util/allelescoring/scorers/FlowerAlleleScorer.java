@@ -15,12 +15,14 @@ public class FlowerAlleleScorer extends AlleleScorer {
 		flowerValue.put("None".toLowerCase(), 5L);
 		flowerValue.put("Rocks".toLowerCase(), 4L);
 		flowerValue.put("Flowers".toLowerCase(), 3L);
+		flowerValue.put("Leaves".toLowerCase(), 3L);
 		flowerValue.put("Mushroom".toLowerCase(), 2L);
 		flowerValue.put("Cacti".toLowerCase(), 1L);
 		flowerValue.put("Exotic Flowers".toLowerCase(), 0L);
 		flowerValue.put("Jungle".toLowerCase(), 0L);
 		flowerValue.put("Wheat".toLowerCase(), 0L);
 		flowerValue.put("Lily Pad".toLowerCase(), 0L);
+		flowerValue.put("Lily Pads".toLowerCase(), 0L);
 		flowerValue.put("End".toLowerCase(), 0L);
 	}
 	

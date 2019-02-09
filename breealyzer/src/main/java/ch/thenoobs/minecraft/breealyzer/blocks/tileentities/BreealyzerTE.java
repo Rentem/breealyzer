@@ -142,6 +142,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 
 			if (beeAmountInAnalyzer <= 0) {
 				fillApiaries(beeInventoryHandler);
+				beeAmountInAnalyzer = 0;
 			}
 			
 			
@@ -298,6 +299,9 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		selector.initWeights();
 		
 		ScoringResult scoringResult = selectBees(drones, princesses, selector);
+		if (scoringResult.getLeftoverDrones().get(0).getRelativeScore() == 0) {
+			return;
+		}
 		ItemStackAt selectedDrone = scoringResult.getSelectedDrone().getBeeWrapper().getItemStackAt();
 		ItemStackAt selectedPrincess =  scoringResult.getSelectedPrincess().getBeeWrapper().getItemStackAt();
 
