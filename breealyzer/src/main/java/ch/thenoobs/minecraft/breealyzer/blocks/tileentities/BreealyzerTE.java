@@ -76,22 +76,19 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			EnumFacing apiarySide = facing.getOpposite();
 
 			lootInventoryHandler = InventoryUtil.getInventoryHandler(world, pos.offset(outputSide), outputSide.getOpposite());
-			//System.out.println(String.format("Output Inventory found: %s.", (lootInventoryPair != null)));
-			
+						
 			if (lootInventoryHandler == null) {
 				return;
 			}
 			
 			beeInventoryHandler = InventoryUtil.getInventoryHandler(world, pos.offset(inputSide), inputSide.getOpposite());
-			//System.out.println(String.format("Input Inventory found: %s.", (beeInventoryPair != null)));
-			
+						
 			if (beeInventoryHandler == null) {
 				return;
 			}
 						
 			apiaries = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(apiarySide), TileApiary.class, apiarySide, false);
-			//System.out.println(String.format("Found %s apiaries to use.", apiaries.size()));
-			
+						
 			if (apiaries.size() < 1) {
 				return;
 			}
@@ -108,13 +105,23 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			if (analyzers.size() < 1) {
 				return;
 			}
-			/*
 			else
 			{
+				Boolean analyzersBusy = false;
+				
 				for (AnalyzerInventoryHandler handler : analyzers) {
-					Log.info("Analyzer is Busy: {}", handler.getIsBusy() );
+					analyzersBusy = handler.getIsBusy();
+					
+					if (analyzersBusy) {
+						break;
+					}
 				}
-			}*/
+				
+				if (analyzersBusy) {
+					Log.info("One or more Analyzers are busy...");
+					return;
+				}				
+			}
 			
 			if (trashManager == null) {
 				trashManager = new TrashManager();
