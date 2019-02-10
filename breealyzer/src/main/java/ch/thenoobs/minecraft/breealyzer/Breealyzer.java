@@ -1,15 +1,17 @@
 package ch.thenoobs.minecraft.breealyzer;
 
-import java.net.URL;
+import java.io.File;
 
 import ch.thenoobs.minecraft.breealyzer.blocks.ModBlocks;
 import ch.thenoobs.minecraft.breealyzer.items.ModItems;
 import ch.thenoobs.minecraft.breealyzer.proxies.CommonProxy;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryFactory;
 import ch.thenoobs.minecraft.breealyzer.util.Log;
+import ch.thenoobs.minecraft.breealyzer.util.LogToFile;
 import ch.thenoobs.minecraft.breealyzer.util.inventory.AnalyzerInventoryHandler;
 import ch.thenoobs.minecraft.breealyzer.util.inventory.ApiaryInventoryHandler;
 import forestry.apiculture.tiles.TileApiary;
+import forestry.core.config.Constants;
 import forestry.core.tiles.TileAnalyzer;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -28,23 +30,25 @@ public class Breealyzer {
 	public static final String MOD_ID = "breealyzer";
 	public static final String NAME = "Breealyzer";
 	public static final String VERSION = "0.1";
-
-	@SidedProxy(serverSide = "ch.thenoobs.minecraft.breealyzer.proxies.CommonProxy", clientSide = "ch.thenoobs.minecraft.breealyzer.proxies.ClientProxy")
-	public static CommonProxy proxy;
-
+	
 	public static final BreealyzerTab BREEALYZER_TAB = new BreealyzerTab();
 
 	@Mod.Instance(MOD_ID)
 	public static Breealyzer instance;
+	
+	private File configFolder;
 
 	@Mod.EventHandler
 	public void construction(FMLConstructionEvent event) {
-		Log.info("Construction event triggered");
+
 	}
 	
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		Log.info("Loading {}", NAME);
+		
+		configFolder = new File(event.getModConfigurationDirectory(), Constants.MOD_ID);
+		LogToFile.info("Test");
 	}
 
 	@Mod.EventHandler
@@ -55,6 +59,11 @@ public class Breealyzer {
 		InventoryFactory.registerInventoryHander(TileAnalyzer.class.getName(), AnalyzerInventoryHandler.class);
 
 		Log.info("InventoryFactory has {} registered handlers.", InventoryFactory.getRegisteredHandlers().size());
+	}
+	
+	public File getConfigFolder()
+	{
+		return this.configFolder;
 	}
 
 	@Mod.EventHandler
