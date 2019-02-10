@@ -3,6 +3,7 @@ package ch.thenoobs.minecraft.breealyzer.proxies;
 import java.io.File;
 
 import ch.thenoobs.minecraft.breealyzer.Breealyzer;
+import ch.thenoobs.minecraft.breealyzer.util.Log;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
@@ -19,6 +20,12 @@ public class ClientProxy extends CommonProxy {
 	
 	@Override
 	public File getRootFolder() {
-		return Minecraft.getMinecraft().mcDataDir;
+		File rootDirectory = Minecraft.getMinecraft().mcDataDir.getAbsoluteFile().getParentFile();
+		
+		if (!rootDirectory.exists()) {
+			rootDirectory.mkdir();
+		}
+
+		return rootDirectory;
 	}
 }

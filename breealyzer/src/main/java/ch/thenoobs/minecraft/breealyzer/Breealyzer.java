@@ -4,21 +4,17 @@ import java.io.File;
 
 import ch.thenoobs.minecraft.breealyzer.blocks.ModBlocks;
 import ch.thenoobs.minecraft.breealyzer.items.ModItems;
-import ch.thenoobs.minecraft.breealyzer.proxies.CommonProxy;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryFactory;
 import ch.thenoobs.minecraft.breealyzer.util.Log;
-import ch.thenoobs.minecraft.breealyzer.util.LogToFile;
 import ch.thenoobs.minecraft.breealyzer.util.inventory.AnalyzerInventoryHandler;
 import ch.thenoobs.minecraft.breealyzer.util.inventory.ApiaryInventoryHandler;
 import forestry.apiculture.tiles.TileApiary;
-import forestry.core.config.Constants;
 import forestry.core.tiles.TileAnalyzer;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLConstructionEvent;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -47,8 +43,7 @@ public class Breealyzer {
 	public void preInit(FMLPreInitializationEvent event) {
 		Log.info("Loading {}", NAME);
 		
-		configFolder = new File(event.getModConfigurationDirectory(), Constants.MOD_ID);
-		LogToFile.info("Test");
+		configFolder = new File(event.getModConfigurationDirectory(), Breealyzer.MOD_ID);
 	}
 
 	@Mod.EventHandler
