@@ -1,7 +1,10 @@
 package ch.thenoobs.minecraft.breealyzer.util.inventory;
 
+import java.util.ArrayList;
+
 import ch.thenoobs.minecraft.breealyzer.util.InventoryHandler;
 import forestry.apiculture.tiles.TileApiary;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.items.IItemHandler;
 
 public class ApiaryInventoryHandler extends InventoryHandler {
@@ -30,8 +33,13 @@ public class ApiaryInventoryHandler extends InventoryHandler {
 		this.environmentInformation.setBlockLightValue(this.tileEntity.getBlockLightValue());
 		this.environmentInformation.setIsSkyVisible(this.tileEntity.canBlockSeeTheSky());
 				
+		this.environmentInformation.setCanWork(this.tileEntity.getBeekeepingLogic().canWork());
+		
+		this.environmentInformation.setFlowerPositions(new ArrayList<BlockPos>(this.tileEntity.getBeekeepingLogic().getFlowerPositions()));	
+		
 		//this.environmentInformation.setHasFlowers(this.tileEntity.getBeekeepingLogic().getFlowerPositions().size() > 0);
-				
-		return environmentInformation;
+
+		return environmentInformation;	
 	}
 }
+	

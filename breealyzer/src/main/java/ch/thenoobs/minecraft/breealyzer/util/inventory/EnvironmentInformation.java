@@ -1,8 +1,10 @@
 package ch.thenoobs.minecraft.breealyzer.util.inventory;
 
-import ch.thenoobs.minecraft.breealyzer.util.Log;
+import java.util.List;
+
 import forestry.api.core.EnumHumidity;
 import forestry.api.core.EnumTemperature;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
 
 public class EnvironmentInformation {
@@ -13,6 +15,8 @@ public class EnvironmentInformation {
 	private EnumHumidity humidity;
 	private int blockLightValue;
 	private Boolean isSkyVisible;
+	private Boolean canWork;
+	private List<BlockPos> flowerPositions;
 
 	public Biome getBiome() {
 		return this.biome;
@@ -61,5 +65,22 @@ public class EnvironmentInformation {
 	
 	public void setIsSkyVisible(Boolean isSkyVisible) 	{
 		this.isSkyVisible = isSkyVisible;
+	}
+	
+	public Boolean getCanWork() {
+		return this.canWork;
+	}
+
+	public void setCanWork(boolean canWork) {
+		this.canWork = canWork;
+	}
+	
+	public List<BlockPos> getFlowerPositions()
+	{
+		return this.flowerPositions;
+	}
+	
+	public void setFlowerPositions(List<BlockPos> flowerPositions) {
+		this.flowerPositions = flowerPositions;
 	}
 }
