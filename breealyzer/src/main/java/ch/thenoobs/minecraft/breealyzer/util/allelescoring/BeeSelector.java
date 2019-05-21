@@ -9,8 +9,6 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.ibm.icu.util.BytesTrie.Result;
-
 import ch.thenoobs.minecraft.breealyzer.util.Log;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.AlleleScorer;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.AreaAlleleScorer;
@@ -94,6 +92,15 @@ public class BeeSelector {
 		result.setLeftoverPrincesses(princessesScores);
 
 		return result;
+	}
+	
+	public boolean isBeePure(BeeScore beeScore) {
+		for (IChromosomeType chrom : weightSortedChromosomes) {
+			if (!(beeScore.getBee().getGenome().getActiveAllele(chrom) == beeScore.getBee().getGenome().getInactiveAllele(chrom))) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public BeeWrapper selectBeeFromList(List<BeeWrapper> bees) {

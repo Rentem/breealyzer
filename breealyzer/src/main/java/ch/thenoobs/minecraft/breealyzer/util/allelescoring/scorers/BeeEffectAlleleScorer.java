@@ -18,7 +18,10 @@ public class BeeEffectAlleleScorer extends AlleleScorer {
 		effectValues.put("fertile".toLowerCase(), 7L);
 		effectValues.put("Repulsion".toLowerCase(), 6L);
 		effectValues.put("radioact.".toLowerCase(), 1L);
+		effectValues.put("freezing.".toLowerCase(), 1L);
+		effectValues.put("lightning.".toLowerCase(), 1L);
 		effectValues.put("water".toLowerCase(), 1L);
+		
 	}
 	
 	public BeeEffectAlleleScorer(IChromosomeType chromosomeType) {

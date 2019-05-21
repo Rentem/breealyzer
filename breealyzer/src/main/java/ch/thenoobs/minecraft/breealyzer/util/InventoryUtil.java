@@ -5,6 +5,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeWrapper;
+import forestry.apiculture.items.ItemBeeGE;
 import forestry.apiculture.tiles.TileApiary;
 import forestry.core.tiles.TileAnalyzer;
 import net.minecraft.inventory.IInventory;
@@ -223,6 +226,11 @@ public class InventoryUtil {
 		}
 
 		return handlers;
+	}
+	
+	public static BeeWrapper wrapBee(ItemStackAt iSTAT) {
+		BeeWrapper newWrapper = new BeeWrapper(((ItemBeeGE)iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack()), iSTAT);
+		return newWrapper;
 	}
 
 }

@@ -3,9 +3,11 @@ package ch.thenoobs.minecraft.breealyzer.util.trashing;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,16 +44,21 @@ public class TrashManager {
 		reqisterDefaultConditions();
 	}
 
-	public void trashBees(List<BeeScore> bees, InventoryHandler beeTrash, InventoryHandler seedBank) {
+	public void trashBees(List<BeeScore> bees, InventoryHandler beeTrash, InventoryHandler seedBank, InventoryHandler workChest) {
 		Log.info("Trashing Bees");
-		Map<Boolean, List<BeeScore>> sortedBees = sortBeesForTrashing(bees);
-		if (sortedBees.containsKey(true)) {
-			List<ItemStackAt> beeStacks = sortedBees.get(true).stream().map(BeeScore::getBeeWrapper).map(BeeWrapper::getItemStackAt).collect(Collectors.toList());
-			Log.info("Keeping {} bees", beeStacks.size());
+		Map<String, List<BeeScore>> sortedBees = sortBeesForTrashing(bees);
+		if (sortedBees.containsKey("seedBank")) {
+			List<ItemStackAt> beeStacks = sortedBees.get("seedBank").stream().map(BeeScore::getBeeWrapper).map(BeeWrapper::getItemStackAt).collect(Collectors.toList());
+			Log.info("Keeping seedBank {} bees", beeStacks.size());
 			InventoryUtil.moveItemStackAtsToTarget(beeStacks, seedBank);
 		}
-		if (sortedBees.containsKey(false)) {
-			List<ItemStackAt> beeStacks = sortedBees.get(false).stream().map(BeeScore::getBeeWrapper).map(BeeWrapper::getItemStackAt).collect(Collectors.toList());
+		if (sortedBees.containsKey("workChest")) {
+			List<ItemStackAt> beeStacks = sortedBees.get("workChest").stream().map(BeeScore::getBeeWrapper).map(BeeWrapper::getItemStackAt).collect(Collectors.toList());
+			Log.info("Keepon workChest {} bees", beeStacks.size());
+			InventoryUtil.moveItemStackAtsToTarget(beeStacks, workChest);
+		}
+		if (sortedBees.containsKey("trash")) {
+			List<ItemStackAt> beeStacks = sortedBees.get("trash").stream().map(BeeScore::getBeeWrapper).map(BeeWrapper::getItemStackAt).collect(Collectors.toList());
 			Log.info("Trashing {} bees", beeStacks.size());
 			InventoryUtil.moveItemStackAtsToTarget(beeStacks, beeTrash);
 		}
@@ -62,7 +69,7 @@ public class TrashManager {
 	 * 
 	 * @return
 	 */
-	public Map<Boolean, List<BeeScore>> sortBeesForTrashing(List<BeeScore> bees) {
+	public Map<String, List<BeeScore>> sortBeesForTrashing(List<BeeScore> bees) {
 		Map<IChromosomeType, Map<String, List<BeeScore>>> selectedBees = new HashMap<>();
 		for (BeeScore bee : bees) {
 			for (Entry<IChromosomeType, BiFunction<BeeScore, Map<String, List<BeeScore>>, Boolean>> entry : registerdGlobalTrashConditions.entrySet()) {
@@ -77,9 +84,26 @@ public class TrashManager {
 		} else {
 			bestScores = Collections.emptyList();
 		}
-		Stream<BeeScore> selectedBeeStream = selectedBees.values().stream().flatMap(m -> m.values().stream()).flatMap(List::stream);
-		List<BeeScore> uniqueBees = Stream.concat(bestScores.stream(), selectedBeeStream).distinct().collect(Collectors.toList());
-		return bees.stream().collect(Collectors.groupingBy(bee -> uniqueBees.contains(bee)));
+		
+		Set<BeeScore> uniqueBees = selectedBees.values().stream()
+				.flatMap(m -> m.values().stream())
+				.flatMap(List::stream)
+				.distinct()
+				.collect(Collectors.toCollection(HashSet::new));
+		
+		return bees.stream()
+				.collect(Collectors.groupingBy(bee -> mapToInventory((BeeScore) bee, uniqueBees, bestScores)));
+		
+	}
+	
+	public String mapToInventory(BeeScore score, Set<BeeScore> uniqueBees, List<BeeScore> bestScores) {
+		if (uniqueBees.contains(score)) {
+			return "seedBank";
+		} 
+		if (bestScores.contains(score)) {
+			return "workChest";
+		}
+		return "trash";
 	}
 
 	public void reqisterDefaultConditions() {
@@ -185,14 +209,25 @@ public class TrashManager {
 
 			int index;
 			for (index = numBeesToKeep - 1; index >= 0; index--) {
-				float compBeeScore = scorer.score(selectedBees.get(index).getBee(), chromosomeType);
+				BeeScore compareBee = selectedBees.get(index);
+				float compBeeScore = scorer.score(compareBee.getBee(), chromosomeType);
 				if (inverse) {
 					if (compBeeScore < beeScore) {
 						break;
 					}
+					if (compBeeScore == beeScore) {
+						if (compareBee.getTotalScore() < bee.getTotalScore()) {
+							break;
+						}
+					}
 				} else {
 					if (compBeeScore > beeScore) {
 						break;
+					}
+					if (compBeeScore == beeScore) {
+						if (compareBee.getTotalScore() > bee.getTotalScore()) {
+							break;
+						}
 					}
 				}
 			}

@@ -23,6 +23,9 @@ public class FlowerAlleleScorer extends AlleleScorer {
 		flowerValue.put("Wheat".toLowerCase(), 0L);
 		flowerValue.put("Lily Pad".toLowerCase(), 0L);
 		flowerValue.put("Lily Pads".toLowerCase(), 0L);
+		flowerValue.put("snow".toLowerCase(), 0L);
+		flowerValue.put("redstone".toLowerCase(), 0L);
+		flowerValue.put("reeds".toLowerCase(), 0L);
 		flowerValue.put("End".toLowerCase(), 0L);
 	}
 	

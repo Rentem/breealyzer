@@ -3,13 +3,16 @@ package ch.thenoobs.minecraft.breealyzer.blocks.tileentities;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import ch.thenoobs.minecraft.breealyzer.blocks.BreealyzerBlock;
+import ch.thenoobs.minecraft.breealyzer.commands.CommandManager;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryHandler;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryUtil;
 import ch.thenoobs.minecraft.breealyzer.util.ItemStackAt;
 import ch.thenoobs.minecraft.breealyzer.util.Log;
+import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeScore;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeSelector;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeWrapper;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.ScoringResult;
@@ -291,32 +294,46 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	
 	private void fillApiary(InventoryHandler apiaryInventoryPair, InventoryHandler beeInventoryPair) {		
 		List<ItemStackAt> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class);
-		
-		Map<EnumBeeType, List<ItemStackAt>> beeMap = bees.stream().collect(Collectors.groupingBy(this::getTypeFromStackAtSlot));
+//		
+		Map<EnumBeeType, List<ItemStackAt>> beeMap = bees.stream().
+				collect(Collectors.groupingBy(this::getTypeFromStackAtSlot));
 
 		List<ItemStackAt> drones = beeMap.get(EnumBeeType.DRONE);
 		List<ItemStackAt> princesses = beeMap.get(EnumBeeType.PRINCESS);
 		
-		if (drones == null || princesses == null) {
-			return;
-		}
-		
-		BeeSelector selector = new BeeSelector();
-		selector.initScoreres("Cultivated");
-		selector.initWeights();
-		
-		ScoringResult scoringResult = selectBees(drones, princesses, selector);
-		if (scoringResult.getLeftoverDrones().get(0).getRelativeScore() == 0) {
-			return;
-		}
-		ItemStackAt selectedDrone = scoringResult.getSelectedDrone().getBeeWrapper().getItemStackAt();
-		ItemStackAt selectedPrincess =  scoringResult.getSelectedPrincess().getBeeWrapper().getItemStackAt();
-
-		InventoryUtil.moveItemAmount(apiaryInventoryPair, 0, beeInventoryPair, selectedPrincess.getSlot(), 1);
-		InventoryUtil.moveItemAmount(apiaryInventoryPair, 1, beeInventoryPair, selectedDrone.getSlot(), 1);
-		
-		trashManager.trashBees(scoringResult.getLeftoverDrones(), lootInventoryHandler, beeInventoryPair);
+		Consumer<List<BeeScore>> thrashMethod =  thrash -> trashManager.trashBees(thrash, lootInventoryHandler, beeInventoryPair, beeInventoryPair);
+		CommandManager.purifyBee(drones, princesses, thrashMethod, apiaryInventoryPair);
+//		List<ItemStackAt> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class);
+//		
+//		Map<EnumBeeType, List<ItemStackAt>> beeMap = bees.stream().collect(Collectors.groupingBy(this::getTypeFromStackAtSlot));
+//
+//		List<ItemStackAt> drones = beeMap.get(EnumBeeType.DRONE);
+//		List<ItemStackAt> princesses = beeMap.get(EnumBeeType.PRINCESS);
+//		
+//		if (drones == null || princesses == null) {
+//			return;
+//		}
+//		
+//		BeeSelector selector = new BeeSelector();
+//		selector.initScoreres("Cultivated");
+//		selector.initWeights();
+//		
+//		ScoringResult scoringResult = selectBees(drones, princesses, selector);
+//		if (scoringResult.getLeftoverDrones().get(0).getRelativeScore() == 0) {
+//			return;
+//		}
+//		ItemStackAt selectedDrone = scoringResult.getSelectedDrone().getBeeWrapper().getItemStackAt();
+//		ItemStackAt selectedPrincess =  scoringResult.getSelectedPrincess().getBeeWrapper().getItemStackAt();
+//
+//		InventoryUtil.moveItemAmount(apiaryInventoryPair, 0, beeInventoryPair, selectedPrincess.getSlot(), 1);
+//		InventoryUtil.moveItemAmount(apiaryInventoryPair, 1, beeInventoryPair, selectedDrone.getSlot(), 1);
+//		
+//		trashManager.trashBees(scoringResult.getLeftoverDrones(), lootInventoryHandler, beeInventoryPair);
 	}
+	
+//	private void trashDrones(List<BeeScore> drones) {
+//		trashManager.trashBees(drones, lootInventoryHandler, seedBankInventoryHandler);
+//	}
 	
 	public void clearApiaries() {
 		for (ApiaryInventoryHandler apiaryInventoryHandler : this.apiaries) {
