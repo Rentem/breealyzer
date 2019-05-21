@@ -7,7 +7,7 @@
    - 
  - Productive Mode (reuse drone & princess without analysing)
  - Check honey reserves for analyzers
- - Add Environment check (take environment into consideration when selecting Queen / Princess
+ - Add Environment check (take environment into consideration when selecting Queen / Princess)
  - Milk Queens until they die... (to create princesses)
  - Add breeding mode where a certain target species is set in the tree. breealyzer will try to achieve this with the given resources. if not achievable, display error (missing species / trait).
  - Breed all possible Bees
@@ -23,10 +23,11 @@
   
  WIP:
  	XpA:  
-  	- Add Flower to EnvironmentInformation
+  	
   
   Done:
  - Change apiary side to rear
  - Add Trashbin :) (Top Right of Breealyzer)
  - Add Seed bank chests (top left)
  - Added Recipe for Breealyzer.
+ - Add Flower to EnvironmentInformation
