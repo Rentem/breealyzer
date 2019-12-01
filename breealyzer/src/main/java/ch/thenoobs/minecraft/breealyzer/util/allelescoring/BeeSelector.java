@@ -279,21 +279,21 @@ public class BeeSelector {
 		if (targetSpecies != null) {
 			chromosomeScorers.put(EnumBeeChromosome.SPECIES, new SpeciesAlleleScorer(EnumBeeChromosome.SPECIES, targetSpecies));
 		}
-		addSorter(EnumBeeChromosome.CAVE_DWELLING, BooleanAlleleScorer::new);
-		addSorter(EnumBeeChromosome.NEVER_SLEEPS, BooleanAlleleScorer::new);
-		addSorter(EnumBeeChromosome.TOLERATES_RAIN, BooleanAlleleScorer::new);
-		addSorter(EnumBeeChromosome.TEMPERATURE_TOLERANCE, ToleranceAlleleScorer::new);
-		addSorter(EnumBeeChromosome.HUMIDITY_TOLERANCE, ToleranceAlleleScorer::new);
-		addSorter(EnumBeeChromosome.FERTILITY, IntegerAlleleScorer::new);
-		addSorter(EnumBeeChromosome.FLOWERING, IntegerAlleleScorer::new);
-		addSorter(EnumBeeChromosome.LIFESPAN, IntegerAlleleScorer::new);
-		addSorter(EnumBeeChromosome.FLOWER_PROVIDER, FlowerAlleleScorer::new);
-		addSorter(EnumBeeChromosome.EFFECT, BeeEffectAlleleScorer::new);
-		addSorter(EnumBeeChromosome.TERRITORY, AreaAlleleScorer::new);
-		addSorter(EnumBeeChromosome.SPEED, FloatAlleleScorer::new);
+		addScorer(EnumBeeChromosome.CAVE_DWELLING, BooleanAlleleScorer::new);
+		addScorer(EnumBeeChromosome.NEVER_SLEEPS, BooleanAlleleScorer::new);
+		addScorer(EnumBeeChromosome.TOLERATES_RAIN, BooleanAlleleScorer::new);
+		addScorer(EnumBeeChromosome.TEMPERATURE_TOLERANCE, ToleranceAlleleScorer::new);
+		addScorer(EnumBeeChromosome.HUMIDITY_TOLERANCE, ToleranceAlleleScorer::new);
+		addScorer(EnumBeeChromosome.FERTILITY, IntegerAlleleScorer::new);
+		addScorer(EnumBeeChromosome.FLOWERING, IntegerAlleleScorer::new);
+		addScorer(EnumBeeChromosome.LIFESPAN, IntegerAlleleScorer::new);
+		addScorer(EnumBeeChromosome.FLOWER_PROVIDER, FlowerAlleleScorer::new);
+		addScorer(EnumBeeChromosome.EFFECT, BeeEffectAlleleScorer::new);
+		addScorer(EnumBeeChromosome.TERRITORY, AreaAlleleScorer::new);
+		addScorer(EnumBeeChromosome.SPEED, FloatAlleleScorer::new);
 	}
 
-	private void addSorter(IChromosomeType cType, Function<IChromosomeType, ? extends AlleleScorer> scorerConstructor) {
+	private void addScorer(IChromosomeType cType, Function<IChromosomeType, ? extends AlleleScorer> scorerConstructor) {
 		chromosomeScorers.put(cType, scorerConstructor.apply(cType));
 	}
 }
