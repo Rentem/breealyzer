@@ -1,11 +1,15 @@
 package ch.thenoobs.minecraft.breealyzer.blocks.tileentities;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import akka.util.Collections;
 import ch.thenoobs.minecraft.breealyzer.blocks.BreealyzerBlock;
 import ch.thenoobs.minecraft.breealyzer.commands.CommandManager;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryHandler;
@@ -18,7 +22,6 @@ import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeWrapper;
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.ScoringResult;
 import ch.thenoobs.minecraft.breealyzer.util.inventory.AnalyzerInventoryHandler;
 import ch.thenoobs.minecraft.breealyzer.util.inventory.ApiaryInventoryHandler;
-import ch.thenoobs.minecraft.breealyzer.util.inventory.EnvironmentInformation;
 import ch.thenoobs.minecraft.breealyzer.util.trashing.TrashManager;
 import forestry.api.apiculture.EnumBeeType;
 import forestry.api.apiculture.IBee;
@@ -26,30 +29,36 @@ import forestry.apiculture.items.ItemBeeGE;
 import forestry.apiculture.tiles.TileApiary;
 import forestry.core.tiles.TileAnalyzer;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.ai.EntityAIVillagerInteract;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraftforge.common.util.Constants;
 
 public class BreealyzerTE extends TileEntity implements ITickable {
 	private int tickModulo = 100;
 	private int tickCnt = 0;
-	
+	private Integer registeredCommandID;
+	private String name;
+	private String uuID;
+
 	private Boolean hasSeedBank = false;
 	private Boolean hasTrash = false;
-	
+
 	private InventoryHandler lootInventoryHandler;
 	private InventoryHandler seedBankInventoryHandler;
 	private InventoryHandler beeInventoryHandler;
-	private InventoryHandler trashInventoryHandler;	
-	
+	private InventoryHandler trashInventoryHandler;
+
 	private TrashManager trashManager;
-	
+
 	private List<AnalyzerInventoryHandler> analyzers;
 	private List<ApiaryInventoryHandler> apiaries;
 
+	private String[] currentCommand;
+	private List<String> commandHistory;
 
 	private int beeAmountInAnalyzer;
 
@@ -57,117 +66,158 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	public void update() {
 		tickCnt--;
 		if (tickCnt < 0) {
+			if (tickModulo < 20) {
+				tickModulo = 100;
+			}
 			tickCnt = tickModulo;
 			executeTick();
 		}
 	}
-	
+
 	private void executeTick() {
 		if (!world.isRemote) {
-			IBlockState blockState = world.getBlockState(this.pos);
-			
-			EnumFacing facing = blockState.getValue(BreealyzerBlock.FACING);			
-						
-			if (facing == EnumFacing.DOWN || facing == EnumFacing.UP) {
-				facing = EnumFacing.NORTH;
-			}
-			
-			EnumFacing inputSide = facing.rotateY();
-			EnumFacing outputSide = inputSide.getOpposite();
+			registerToCommandManager();
+			initExtensions();
 
-			EnumFacing analyzerSide = EnumFacing.DOWN;
-			EnumFacing apiarySide = facing.getOpposite();
+			executeCurrentCommand();
 
-			lootInventoryHandler = InventoryUtil.getInventoryHandler(world, pos.offset(outputSide), outputSide.getOpposite());
-						
-			if (lootInventoryHandler == null) {
-				return;
-			}
-			
-			beeInventoryHandler = InventoryUtil.getInventoryHandler(world, pos.offset(inputSide), inputSide.getOpposite());
-						
-			if (beeInventoryHandler == null) {
-				return;
-			}
-						
-			apiaries = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(apiarySide), TileApiary.class, apiarySide, false);
-						
-			if (apiaries.size() < 1) {
-				return;
-			}
-			/*
-			else
-			{
-				for (ApiaryInventoryHandler handler : apiaries) {
-					handler.getEnvironment();
-				}
-			}*/
-			
-			analyzers = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(analyzerSide), TileAnalyzer.class, analyzerSide, false);
-			
-			if (analyzers.size() < 1) {
-				return;
-			}
-			else
-			{
-				Boolean analyzersBusy = false;
-				
-				for (AnalyzerInventoryHandler handler : analyzers) {
-					analyzersBusy = handler.getIsBusy();
-					
-					if (analyzersBusy) {
-						break;
-					}
-				}
-				
-				if (analyzersBusy) {
-					Log.info("One or more Analyzers are busy...");
-					return;
-				}				
-			}
-			
-			if (trashManager == null) {
-				trashManager = new TrashManager();
-			}
-			
-			seedBankInventoryHandler = InventoryUtil.getInventoryHandler(world, pos.offset(inputSide).offset(EnumFacing.UP), outputSide.getOpposite());	
-			//System.out.println(String.format("Seed Bank Inventory found: %s.", (seedBankInventoryPair != null)));
-			
-			if (seedBankInventoryHandler != null) {
-				this.hasSeedBank = true;
-			}
-			
-			trashInventoryHandler = InventoryUtil.getInventoryHandler(world, pos.offset(outputSide).offset(EnumFacing.UP), inputSide.getOpposite());
-			//System.out.println(String.format("Trash Inventory found: %s.", (trashInventoryPair != null)));
-
-			if (trashInventoryHandler != null) {
-				this.hasTrash = true;
-			}
-			
-			clearApiaries();
-
-			InventoryUtil.condenseItems(beeInventoryHandler);
-			
-			analyzeBees();
-
-			if (beeAmountInAnalyzer <= 0) {
-				fillApiaries(beeInventoryHandler);
-				beeAmountInAnalyzer = 0;
-			}
-			
-			
-//			trashBees();
+			// trashBees();
 		}
 	}
-	
-//	private void trashBees() {		
-//		Log.info("Trashing Bees");
-//		List<BeeWrapper> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class).stream()
-//				.filter(iSAT -> getTypeFromStackAtSlot(iSAT) == EnumBeeType.DRONE)
-//				.map(BreealyzerTE::wrapBee)
-//				.collect(Collectors.toList());
-//		trashManager.trashBees(bees, lootInventoryPair, beeInventoryPair);
-//	}
+
+	// TODO integrate properly
+	private void purifyBee() {
+		if (analyzers.size() < 1) {
+			return;
+		} else {
+			Boolean analyzersBusy = false;
+
+			for (AnalyzerInventoryHandler handler : analyzers) {
+				analyzersBusy = handler.getIsBusy();
+
+				if (analyzersBusy) {
+					break;
+				}
+			}
+
+			if (analyzersBusy) {
+				Log.info("One or more Analyzers are busy...");
+				return;
+			}
+		}
+
+		clearApiaries();
+
+		InventoryUtil.condenseItems(beeInventoryHandler);
+
+		analyzeBees();
+
+		if (beeAmountInAnalyzer <= 0) {
+			fillApiaries(beeInventoryHandler);
+			beeAmountInAnalyzer = 0;
+		}
+	}
+
+	private void registerToCommandManager() {
+		CommandManager.registerBreeAlyzer(this);
+	}
+
+	public String ensureAndGetUUID() {
+		if (uuID == null || uuID.isEmpty()) {
+			uuID = UUID.randomUUID().toString();
+		}
+		return uuID;
+	}
+
+	// TODO check valid commands, move to CommandManager?
+	// TEST ID 362c299e-856b-498d-86fc-3b6f5742cb0a
+	public void setNewCommand(String[] command) {
+		Log.info("New command: " + Arrays.toString(command));
+		currentCommand = command;
+	}
+
+	private void executeCurrentCommand() {
+		if (currentCommand == null || currentCommand.length == 0) {
+			Log.info("No currently active command");
+			return;
+		}
+		Log.info(Arrays.toString(currentCommand));
+		if (currentCommand[0].equalsIgnoreCase("purify")) {
+			purifyBee();
+		}
+	}
+
+	// TODO rename
+	private void initExtensions() {
+		IBlockState blockState = world.getBlockState(this.pos);
+
+		EnumFacing facing = blockState.getValue(BreealyzerBlock.FACING);
+
+		if (facing == EnumFacing.DOWN || facing == EnumFacing.UP) {
+			facing = EnumFacing.NORTH;
+		}
+
+		EnumFacing inputSide = facing.rotateY();
+		EnumFacing outputSide = inputSide.getOpposite();
+
+		EnumFacing analyzerSide = EnumFacing.DOWN;
+		EnumFacing apiarySide = facing.getOpposite();
+
+		lootInventoryHandler = InventoryUtil.getInventoryHandler(world, pos.offset(outputSide), outputSide.getOpposite());
+
+		if (lootInventoryHandler == null) {
+			return;
+		}
+
+		beeInventoryHandler = InventoryUtil.getInventoryHandler(world, pos.offset(inputSide), inputSide.getOpposite());
+
+		if (beeInventoryHandler == null) {
+			return;
+		}
+
+		apiaries = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(apiarySide), TileApiary.class, apiarySide, false);
+
+		if (apiaries.size() < 1) {
+			return;
+		}
+		/*
+		 * else { for (ApiaryInventoryHandler handler : apiaries) {
+		 * handler.getEnvironment(); } }
+		 */
+
+		analyzers = InventoryUtil.getInventoryHandlersOfTypeInDirection(world, pos.offset(analyzerSide), TileAnalyzer.class, analyzerSide, false);
+
+		if (trashManager == null) {
+			trashManager = new TrashManager();
+		}
+
+		seedBankInventoryHandler = InventoryUtil.getInventoryHandler(world, pos.offset(inputSide).offset(EnumFacing.UP), outputSide.getOpposite());
+		// System.out.println(String.format("Seed Bank Inventory found: %s.",
+		// (seedBankInventoryPair != null)));
+
+		if (seedBankInventoryHandler != null) {
+			this.hasSeedBank = true;
+		}
+
+		trashInventoryHandler = InventoryUtil.getInventoryHandler(world, pos.offset(outputSide).offset(EnumFacing.UP), inputSide.getOpposite());
+		// System.out.println(String.format("Trash Inventory found: %s.",
+		// (trashInventoryPair != null)));
+
+		if (trashInventoryHandler != null) {
+			this.hasTrash = true;
+		}
+
+	}
+
+	// private void trashBees() {
+	// Log.info("Trashing Bees");
+	// List<BeeWrapper> bees = InventoryUtil.getStacksOfType(beeInventoryPair,
+	// ItemBeeGE.class).stream()
+	// .filter(iSAT -> getTypeFromStackAtSlot(iSAT) == EnumBeeType.DRONE)
+	// .map(BreealyzerTE::wrapBee)
+	// .collect(Collectors.toList());
+	// trashManager.trashBees(bees, lootInventoryPair, beeInventoryPair);
+	// }
 
 	private ScoringResult selectBees(List<ItemStackAt> drones, List<ItemStackAt> princesses, BeeSelector selector) {
 		List<BeeWrapper> wrappedDrones = drones.stream().map(BreealyzerTE::wrapBee).collect(Collectors.toList());
@@ -177,65 +227,64 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	}
 
 	private static BeeWrapper wrapBee(ItemStackAt iSTAT) {
-		BeeWrapper newWrapper = new BeeWrapper(((ItemBeeGE)iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack()), iSTAT);
+		BeeWrapper newWrapper = new BeeWrapper(((ItemBeeGE) iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack()), iSTAT);
 		return newWrapper;
 	}
 
 	private EnumBeeType getTypeFromStackAtSlot(ItemStackAt iSTAT) {
-		return ((ItemBeeGE)iSTAT.getStack().getItem()).getType();
+		return ((ItemBeeGE) iSTAT.getStack().getItem()).getType();
 	}
 
 	private void analyzeBees() {
 		List<ItemStackAt> unAnalyzedBees = getUnAnalyzedBees();
 		int amount = fillAnalyzers(unAnalyzedBees, beeInventoryHandler, analyzers);
-//		int amount = fillAnalyzer(beeInventoryPair, analyzerInventoryPair);
-		//		System.out.println("Analyzing " + amount + " bees");
+		// int amount = fillAnalyzer(beeInventoryPair, analyzerInventoryPair);
+		// System.out.println("Analyzing " + amount + " bees");
 		beeAmountInAnalyzer += amount;
 		if (beeAmountInAnalyzer > 0) {
 			for (InventoryHandler analyzer : analyzers) {
 				amount = clearAnalyzer(beeInventoryHandler, analyzer);
-//						System.out.println("Analyzed " + amount + " bees");
+				// System.out.println("Analyzed " + amount + " bees");
 				beeAmountInAnalyzer -= amount;
 			}
-//			amount = clearAnalyzer(beeInventoryPair, analyzerInventoryPair);
-//			//		System.out.println("Analyzed " + amount + " bees");
-//			beeAmountInAnalyzer -= amount;
+			// amount = clearAnalyzer(beeInventoryPair, analyzerInventoryPair);
+			// // System.out.println("Analyzed " + amount + " bees");
+			// beeAmountInAnalyzer -= amount;
 		}
-		//		System.out.println("Bees in analyzer: " + beeAmountInAnalyzer);
+		// System.out.println("Bees in analyzer: " + beeAmountInAnalyzer);
 	}
 
 	private List<ItemStackAt> getUnAnalyzedBees() {
 		List<ItemStackAt> bees = InventoryUtil.getStacksOfType(beeInventoryHandler, ItemBeeGE.class);
-		
+
 		return bees.stream().filter(beeStack -> !getBeeFromISTAT(beeStack).isAnalyzed()).collect(Collectors.toList());
 	}
-	
+
 	private int fillAnalyzers(List<ItemStackAt> bees, InventoryHandler workChest, List<AnalyzerInventoryHandler> analyzers) {
-		int cnt = bees.size()-1;
+		int cnt = bees.size() - 1;
 		int totalAmount = 0;
 		while (cnt >= 0) {
-			InventoryHandler analyzer = analyzers.get(cnt%analyzers.size());
+			InventoryHandler analyzer = analyzers.get(cnt % analyzers.size());
 			int amount = fillAnalyzer(workChest, analyzer, bees.get(cnt).getSlot());
-			totalAmount += amount; //TODO catch if analyzer is full
+			totalAmount += amount; // TODO catch if analyzer is full
 			cnt--;
 		}
 		return totalAmount;
 	}
-	
-	
+
 	private IBee getBeeFromISTAT(ItemStackAt iSTAT) {
-		return ((ItemBeeGE)iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack());
+		return ((ItemBeeGE) iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack());
 	}
-	
+
 	private int fillAnalyzer(InventoryHandler workChest, InventoryHandler anlayzer) {
 		int amount = 0;
 		for (int sourceSlot = 0; sourceSlot < workChest.getItemHandler().getSlots(); sourceSlot++) {
 			amount += fillAnalyzer(workChest, anlayzer, sourceSlot);
-		}	
+		}
 		return amount;
 	}
 
-	public int fillAnalyzer(InventoryHandler workChest, InventoryHandler analyzer, int sourceSlot) {			
+	public int fillAnalyzer(InventoryHandler workChest, InventoryHandler analyzer, int sourceSlot) {
 		final ItemStack stackToPull = workChest.getItemHandler().getStackInSlot(sourceSlot);
 		if (stackToPull.isEmpty()) {
 			return 0;
@@ -259,7 +308,6 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		return amount;
 	}
 
-
 	private int clearAnalyzer(InventoryHandler workChest, InventoryHandler analyzer) {
 		int amount = 0;
 		for (int sourceSlot = 0; sourceSlot < analyzer.getItemHandler().getSlots(); sourceSlot++) {
@@ -271,91 +319,71 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			final ItemStack stackToPull2 = analyzer.getItemHandler().getStackInSlot(sourceSlot);
 			amount += a - stackToPull2.getCount();
 
-		}	
+		}
 		return amount;
 	}
 
-	private void fillApiaries(InventoryHandler beeInventoryPair) {				
+	private void fillApiaries(InventoryHandler beeInventoryPair) {
 		List<InventoryHandler> usableApiaries = new ArrayList<>();
-		
+
 		for (InventoryHandler apiaryPair : this.apiaries) {
 			if (apiaryPair.getItemHandler().getStackInSlot(0).isEmpty()) {
 				usableApiaries.add(apiaryPair);
 			}
 		}
-		
+
 		if (usableApiaries.size() > 0) {
-			for (InventoryHandler apiaryInventoryPair : usableApiaries)
-			{
+			for (InventoryHandler apiaryInventoryPair : usableApiaries) {
 				fillApiary(apiaryInventoryPair, beeInventoryPair);
 			}
 		}
 	}
-	
-	private void fillApiary(InventoryHandler apiaryInventoryPair, InventoryHandler beeInventoryPair) {		
+
+	private void fillApiary(InventoryHandler apiaryInventoryPair, InventoryHandler beeInventoryPair) {
+		if (currentCommand == null || currentCommand.length < 2 || currentCommand[1] == null || currentCommand[1].isEmpty()) {
+			return;
+		}
 		List<ItemStackAt> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class);
-//		
-		Map<EnumBeeType, List<ItemStackAt>> beeMap = bees.stream().
-				collect(Collectors.groupingBy(this::getTypeFromStackAtSlot));
+		//
+		Map<EnumBeeType, List<ItemStackAt>> beeMap = bees.stream().collect(Collectors.groupingBy(this::getTypeFromStackAtSlot));
 
 		List<ItemStackAt> drones = beeMap.get(EnumBeeType.DRONE);
 		List<ItemStackAt> princesses = beeMap.get(EnumBeeType.PRINCESS);
-		
-		Consumer<List<BeeScore>> thrashMethod =  thrash -> trashManager.trashBees(thrash, lootInventoryHandler, beeInventoryPair, beeInventoryPair);
-		CommandManager.purifyBee(drones, princesses, thrashMethod, apiaryInventoryPair);
-//		List<ItemStackAt> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class);
-//		
-//		Map<EnumBeeType, List<ItemStackAt>> beeMap = bees.stream().collect(Collectors.groupingBy(this::getTypeFromStackAtSlot));
-//
-//		List<ItemStackAt> drones = beeMap.get(EnumBeeType.DRONE);
-//		List<ItemStackAt> princesses = beeMap.get(EnumBeeType.PRINCESS);
-//		
-//		if (drones == null || princesses == null) {
-//			return;
-//		}
-//		
-//		BeeSelector selector = new BeeSelector();
-//		selector.initScoreres("Cultivated");
-//		selector.initWeights();
-//		
-//		ScoringResult scoringResult = selectBees(drones, princesses, selector);
-//		if (scoringResult.getLeftoverDrones().get(0).getRelativeScore() == 0) {
-//			return;
-//		}
-//		ItemStackAt selectedDrone = scoringResult.getSelectedDrone().getBeeWrapper().getItemStackAt();
-//		ItemStackAt selectedPrincess =  scoringResult.getSelectedPrincess().getBeeWrapper().getItemStackAt();
-//
-//		InventoryUtil.moveItemAmount(apiaryInventoryPair, 0, beeInventoryPair, selectedPrincess.getSlot(), 1);
-//		InventoryUtil.moveItemAmount(apiaryInventoryPair, 1, beeInventoryPair, selectedDrone.getSlot(), 1);
-//		
-//		trashManager.trashBees(scoringResult.getLeftoverDrones(), lootInventoryHandler, beeInventoryPair);
+
+		Consumer<List<BeeScore>> thrashMethod = thrash -> trashManager.trashBees(thrash, lootInventoryHandler, beeInventoryPair, beeInventoryPair);
+		int cmdReturn = CommandManager.purifyBee(drones, princesses, thrashMethod, apiaryInventoryPair, currentCommand[1]);
+		if (cmdReturn == 0) {
+			//TODO inform finished?
+			currentCommand = new String[0];
+		}
 	}
-	
-//	private void trashDrones(List<BeeScore> drones) {
-//		trashManager.trashBees(drones, lootInventoryHandler, seedBankInventoryHandler);
-//	}
-	
+
+	// private void trashDrones(List<BeeScore> drones) {
+	// trashManager.trashBees(drones, lootInventoryHandler,
+	// seedBankInventoryHandler);
+	// }
+
 	public void clearApiaries() {
 		for (ApiaryInventoryHandler apiaryInventoryHandler : this.apiaries) {
 			this.clearApiary(apiaryInventoryHandler);
 		}
 	}
-	
+
 	public void clearApiary(ApiaryInventoryHandler apiaryInventoryHandler) {
 		for (int sourceSlot = 0; sourceSlot < apiaryInventoryHandler.getItemHandler().getSlots(); sourceSlot++) {
-			clearApiary(apiaryInventoryHandler, sourceSlot);	
-		}		
+			clearApiary(apiaryInventoryHandler, sourceSlot);
+		}
 	}
 
-	public void clearApiary(ApiaryInventoryHandler apiaryInventoryHandler, int sourceSlot) {			
+	public void clearApiary(ApiaryInventoryHandler apiaryInventoryHandler, int sourceSlot) {
 		final ItemStack stackToPull = apiaryInventoryHandler.getItemHandler().getStackInSlot(sourceSlot);
-		
+
 		if (stackToPull.isEmpty()) {
 			return;
 		}
-		
+
 		InventoryHandler targetPair;
-		
+
 		if (stackToPull.getItem() instanceof ItemBeeGE) {
 			targetPair = beeInventoryHandler;
 		} else {
@@ -368,26 +396,33 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		}
 	}
 
-	//	public boolean moveStack(InventoryHandlerEntityPair targetPair, int targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot) {		
-	//		final ItemStack stackToPull = sourcePair.getInventoryHandler().getStackInSlot(sourceSlot);
-	//		if (stackToPull.isEmpty()) {
-	//			return false;
-	//		}
-	//		final ItemStack leftover = targetPair.getInventoryHandler().insertItem(targetSlot, stackToPull, true);
-	//		int amount = stackToPull.getCount() - leftover.getCount();
-	//		if (amount == 0) {
-	//			return false;
-	//		}
-	//		final ItemStack effectiveStack = sourcePair.getInventoryHandler().extractItem(sourceSlot, amount, false);
-	//		targetPair.getInventoryHandler().insertItem(targetSlot, effectiveStack, false);
-	//		targetPair.getTileEntity().markDirty();
-	//		sourcePair.getTileEntity().markDirty();
-	//		return stackToPull.isEmpty();
-	//	}
-
+	// public boolean moveStack(InventoryHandlerEntityPair targetPair, int
+	// targetSlot, InventoryHandlerEntityPair sourcePair, int sourceSlot) {
+	// final ItemStack stackToPull =
+	// sourcePair.getInventoryHandler().getStackInSlot(sourceSlot);
+	// if (stackToPull.isEmpty()) {
+	// return false;
+	// }
+	// final ItemStack leftover =
+	// targetPair.getInventoryHandler().insertItem(targetSlot, stackToPull, true);
+	// int amount = stackToPull.getCount() - leftover.getCount();
+	// if (amount == 0) {
+	// return false;
+	// }
+	// final ItemStack effectiveStack =
+	// sourcePair.getInventoryHandler().extractItem(sourceSlot, amount, false);
+	// targetPair.getInventoryHandler().insertItem(targetSlot, effectiveStack,
+	// false);
+	// targetPair.getTileEntity().markDirty();
+	// sourcePair.getTileEntity().markDirty();
+	// return stackToPull.isEmpty();
+	// }
 
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+		super.writeToNBT(compound);
+		writeStringArrayToNbt(currentCommand, "currentCommand", compound);
+		compound.setString("uuID", uuID);
 		compound.setInteger("tickCnt", tickCnt);
 		compound.setInteger("tickModulo", tickModulo);
 		compound.setInteger("beeAmountInAnalyzer", beeAmountInAnalyzer);
@@ -396,9 +431,39 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
+		super.readFromNBT(compound);
+		currentCommand = readStringArrayFromNBT("currentCommand", compound);
+		uuID = compound.getString("uuID");
 		tickCnt = compound.getInteger("tickCnt");
 		tickModulo = compound.getInteger("tickModulo");
 		beeAmountInAnalyzer = compound.getInteger("beeAmountInAnalyzer");
 		super.readFromNBT(compound);
+	}
+
+	private static void writeStringArrayToNbt(String[] stringArray, String tagName, NBTTagCompound compound) {
+		NBTTagList tagList = new NBTTagList();
+		for (int i = 0; i < stringArray.length; i++) {
+			String s = stringArray[i];
+			if (s != null) {
+				NBTTagCompound tag = new NBTTagCompound();
+				tag.setString(tagName + i, s);
+				tagList.appendTag(tag);
+			}
+		}
+		compound.setTag(tagName, tagList);
+	}
+
+	private static String[] readStringArrayFromNBT(String tagName, NBTTagCompound compound) {
+		NBTTagList tagList = compound.getTagList(tagName, Constants.NBT.TAG_COMPOUND);
+		if (tagList == null) {
+			return null;
+		}
+		String[] stringArray = new String[tagList.tagCount()];
+		for (int i = 0; i < tagList.tagCount(); i++) {
+			NBTTagCompound tag = tagList.getCompoundTagAt(i);
+			String s = tag.getString(tagName + i);
+			stringArray[i] = s;
+		}
+		return stringArray;
 	}
 }

@@ -73,7 +73,7 @@ public class TrashManager {
 		Map<IChromosomeType, Map<String, List<BeeScore>>> selectedBees = new HashMap<>();
 		for (BeeScore bee : bees) {
 			for (Entry<IChromosomeType, BiFunction<BeeScore, Map<String, List<BeeScore>>, Boolean>> entry : registerdGlobalTrashConditions.entrySet()) {
-				selectedBees.putIfAbsent(entry.getKey(), new HashMap<String, List<BeeScore>>());
+				selectedBees.computeIfAbsent(entry.getKey(), e -> new HashMap<String, List<BeeScore>>());
 				entry.getValue().apply(bee, selectedBees.get(entry.getKey()));
 			}
 

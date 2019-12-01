@@ -3,6 +3,7 @@ package ch.thenoobs.minecraft.breealyzer;
 import java.io.File;
 
 import ch.thenoobs.minecraft.breealyzer.blocks.ModBlocks;
+import ch.thenoobs.minecraft.breealyzer.commands.BreealyzerCommand;
 import ch.thenoobs.minecraft.breealyzer.items.ModItems;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryFactory;
 import ch.thenoobs.minecraft.breealyzer.util.Log;
@@ -19,6 +20,7 @@ import net.minecraftforge.fml.common.event.FMLConstructionEvent;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @Mod(modid = Breealyzer.MOD_ID, version = Breealyzer.VERSION, dependencies = "required-after:forestry")
@@ -54,7 +56,17 @@ public class Breealyzer {
 		InventoryFactory.registerInventoryHander(TileAnalyzer.class.getName(), AnalyzerInventoryHandler.class);
 
 		Log.info("InventoryFactory has {} registered handlers.", InventoryFactory.getRegisteredHandlers().size());
+		
 	}
+
+
+
+	@Mod.EventHandler
+    public void starting(FMLServerStartingEvent event)
+    {
+    	event.registerServerCommand(new BreealyzerCommand());
+    }
+	
 	
 	public File getConfigFolder()
 	{
