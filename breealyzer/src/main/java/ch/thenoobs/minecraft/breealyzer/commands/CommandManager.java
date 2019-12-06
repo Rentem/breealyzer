@@ -52,6 +52,12 @@ public class CommandManager {
 		if (command.length < 2) {
 			return;
 		}
+		if (!isCommandValid(command)) {
+			TextComponentString text = new TextComponentString("Command not recognised: " + Arrays.toString(command));
+			sender.sendMessage(text);
+			return;
+		}
+
 		BreealyzerTE alyzer = registeredBreeAlyzers.get(idString);
 		if (alyzer == null) {
 			TextComponentString text = new TextComponentString("No breealyzer with id " + idString + " found");
@@ -60,6 +66,20 @@ public class CommandManager {
 		}
 		alyzer.setNewCommand((String[]) Arrays.copyOfRange(command, 1, command.length));
 
+	}
+
+	// TODO better way? switch?
+	private static boolean isCommandValid(String[] command) {
+		if (command[1].equalsIgnoreCase("purify") && command[2] != null && !command[2].isEmpty()) {
+			return true;
+		}
+		if (command[1].equalsIgnoreCase("toggleDeleteTrashBees")) {
+			return true;
+		}
+		if (command[1].equalsIgnoreCase("listKnownSpecies")) {
+			return true;
+		}
+		return false;
 	}
 
 	private static void findBreealayzer(String alyzerId, ICommandSender sender) {
@@ -85,38 +105,6 @@ public class CommandManager {
 			TextComponentString text = new TextComponentString(key);
 			sender.sendMessage(text);
 		}
-	}
-
-	public static int purifyBee(List<ItemStackAt> drones, List<ItemStackAt> princesses, Consumer<List<BeeScore>> droneTrashMethod, InventoryHandler apiaryInventoryPair, String targetSpecies) {
-		if (drones == null || princesses == null) {
-			return -1;
-		}
-
-		BeeSelector selector = new BeeSelector();
-		selector.initScoreres(targetSpecies);
-		selector.initWeights();
-
-		ScoringResult scoringResult = selectBees(drones, princesses, selector);
-		if (scoringResult.getLeftoverDrones().get(0).getRelativeScore() == 0 && scoringResult.getSelectedDrone().getRelativeScore() == 0 && selector.isBeePure(scoringResult.getSelectedDrone())) {
-			if (scoringResult.getSelectedDrone().getBeeWrapper().getItemStackAt().getStack().getCount() > 5) {
-				return 0;
-			}
-		}
-		ItemStackAt selectedDrone = scoringResult.getSelectedDrone().getBeeWrapper().getItemStackAt();
-		ItemStackAt selectedPrincess = scoringResult.getSelectedPrincess().getBeeWrapper().getItemStackAt();
-
-		InventoryUtil.moveItemAmount(apiaryInventoryPair, 0, selectedPrincess.getInventory(), selectedPrincess.getSlot(), 1);
-		InventoryUtil.moveItemAmount(apiaryInventoryPair, 1, selectedDrone.getInventory(), selectedDrone.getSlot(), 1);
-
-		droneTrashMethod.accept(scoringResult.getLeftoverDrones());
-		return 1;
-	}
-
-	private static ScoringResult selectBees(List<ItemStackAt> drones, List<ItemStackAt> princesses, BeeSelector selector) {
-		List<BeeWrapper> wrappedDrones = drones.stream().map(InventoryUtil::wrapBee).collect(Collectors.toList());
-		List<BeeWrapper> wrappedPrincesses = princesses.stream().map(InventoryUtil::wrapBee).collect(Collectors.toList());
-		ScoringResult results = selector.selectBreedingPair(wrappedDrones, wrappedPrincesses);
-		return results;
 	}
 
 }

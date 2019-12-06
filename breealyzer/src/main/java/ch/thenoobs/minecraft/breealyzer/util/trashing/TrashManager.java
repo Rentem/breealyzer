@@ -1,7 +1,6 @@
 package ch.thenoobs.minecraft.breealyzer.util.trashing;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import ch.thenoobs.minecraft.breealyzer.util.InventoryHandler;
 import ch.thenoobs.minecraft.breealyzer.util.InventoryUtil;
@@ -30,7 +28,6 @@ import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.ToleranceAlle
 import ch.thenoobs.minecraft.breealyzer.util.allelescoring.scorers.TraitScorer;
 import forestry.api.apiculture.EnumBeeChromosome;
 import forestry.api.apiculture.IAlleleBeeEffect;
-import forestry.api.apiculture.IBee;
 import forestry.api.genetics.IAlleleFlowers;
 import forestry.api.genetics.IAlleleSpecies;
 import forestry.api.genetics.IChromosomeType;
@@ -44,7 +41,7 @@ public class TrashManager {
 		reqisterDefaultConditions();
 	}
 
-	public void trashBees(List<BeeScore> bees, InventoryHandler beeTrash, InventoryHandler seedBank, InventoryHandler workChest) {
+	public void trashBees(List<BeeScore> bees, InventoryHandler beeTrash, InventoryHandler seedBank, InventoryHandler workChest, boolean deleteThrashBees) {
 		Log.info("Trashing Bees");
 		Map<String, List<BeeScore>> sortedBees = sortBeesForTrashing(bees);
 		if (sortedBees.containsKey("seedBank")) {
@@ -60,15 +57,15 @@ public class TrashManager {
 		if (sortedBees.containsKey("trash")) {
 			List<ItemStackAt> beeStacks = sortedBees.get("trash").stream().map(BeeScore::getBeeWrapper).map(BeeWrapper::getItemStackAt).collect(Collectors.toList());
 			Log.info("Trashing {} bees", beeStacks.size());
-			InventoryUtil.moveItemStackAtsToTarget(beeStacks, beeTrash);
+			if (deleteThrashBees) {
+				InventoryUtil.deleteStacks(beeStacks);
+			} else {
+				InventoryUtil.moveItemStackAtsToTarget(beeStacks, beeTrash);
+			}
 		}
 	}
 
-	/**
-	 * false -> trash .......... true -> keep
-	 * 
-	 * @return
-	 */
+	
 	public Map<String, List<BeeScore>> sortBeesForTrashing(List<BeeScore> bees) {
 		Map<IChromosomeType, Map<String, List<BeeScore>>> selectedBees = new HashMap<>();
 		for (BeeScore bee : bees) {
@@ -78,28 +75,40 @@ public class TrashManager {
 			}
 
 		}
-		List<BeeScore> bestScores;
-		if (bees.size() > 5) {
-			 bestScores = bees.subList(0, 4);
-		} else {
-			bestScores = Collections.emptyList();
-		}
 		
+		//keep the bees with the highest scores
+		List<BeeScore> bestScores = trimBees(bees);
+
 		Set<BeeScore> uniqueBees = selectedBees.values().stream()
 				.flatMap(m -> m.values().stream())
+				.map(this::trimBees)
 				.flatMap(List::stream)
 				.distinct()
 				.collect(Collectors.toCollection(HashSet::new));
-		
+
 		return bees.stream()
 				.collect(Collectors.groupingBy(bee -> mapToInventory((BeeScore) bee, uniqueBees, bestScores)));
-		
+
 	}
 	
+	private List<BeeScore> trimBees(List<BeeScore> scores) {
+		List<BeeScore> selectedScores = new ArrayList<>();
+		int numBees = 0;
+		for (BeeScore bee : scores) {
+			selectedScores.add(bee);
+			numBees = numBees + bee.getStackSize();
+			if (numBees > numBeesToKeep) {
+				break;
+			}
+		}
+//		Log.info("Trimed from " + scores.size() + " to " + selectedScores.size() + " count: " + numBees);
+		return selectedScores;
+	}
+
 	public String mapToInventory(BeeScore score, Set<BeeScore> uniqueBees, List<BeeScore> bestScores) {
 		if (uniqueBees.contains(score)) {
 			return "seedBank";
-		} 
+		}
 		if (bestScores.contains(score)) {
 			return "workChest";
 		}

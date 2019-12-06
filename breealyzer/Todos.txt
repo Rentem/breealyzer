@@ -1,6 +1,5 @@
  - Throw trashy drones into waste bin
    - SeedBank has 5 Drones for each trait (using best trait value) 
-   - use stack count not only stacks
    - differentiate seedBank and workchest (bestScores to workchest)
    - use SeedBank for Selection (and refill?)
    - clean SeedBank (purify for best value for each Trait)
@@ -20,6 +19,7 @@
  - Check honey reserves for analyzers (possible to get the Fluid amount from AnalyzerInventoryHandler.getTankFluidAmount())
  - breeding log
  - commands & flags
+ - message if analyzers are empty (honey)
   
  WIP:
  	XpA:  

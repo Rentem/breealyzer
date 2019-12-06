@@ -37,6 +37,9 @@ public class BeeScore {
 		this.totalScore = totalScore;
 	}
 
+	public int getStackSize() {
+		return this.getBeeWrapper().getItemStackAt().getStack().getCount();
+	}
 
 	public float getRelativeScore() {
 		return relativeScore;

@@ -6,10 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeWrapper;
-import forestry.apiculture.items.ItemBeeGE;
-import forestry.apiculture.tiles.TileApiary;
-import forestry.core.tiles.TileAnalyzer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.Item;
@@ -25,10 +21,29 @@ import net.minecraftforge.items.wrapper.SidedInvWrapper;
 import scala.actors.threadpool.Arrays;
 
 public class InventoryUtil {
+	private InventoryUtil() {
+	    throw new IllegalStateException("Utility class");
+	  }
+	
 	public static void emptyInventory(InventoryHandler targetPair, InventoryHandler sourcePair) {
 		for (int sourceSlot = 0; sourceSlot < sourcePair.getItemHandler().getSlots(); sourceSlot++) {
 			moveStack(targetPair, sourcePair, sourceSlot);
 		}
+	}
+	
+	public static int emptyInventoryCountTotalMoved(InventoryHandler target, InventoryHandler source) {
+		int amount = 0;
+		for (int sourceSlot = 0; sourceSlot < source.getItemHandler().getSlots(); sourceSlot++) {
+			final ItemStack stackToPull = source.getItemHandler().getStackInSlot(sourceSlot);
+
+			int a = stackToPull.getCount();
+			InventoryUtil.moveStack(target, source, sourceSlot);
+
+			final ItemStack stackToPull2 = source.getItemHandler().getStackInSlot(sourceSlot);
+			amount += a - stackToPull2.getCount();
+
+		}
+		return amount;
 	}
 
 	public static <T> Map<Item, Integer> getItemsOfType(InventoryHandler inventory, Class<T> itemType) {
@@ -65,11 +80,24 @@ public class InventoryUtil {
 		}
 	}
 
-	public static void moveItemStackAtsToTarget(List<ItemStackAt> stacks, InventoryHandler target) {
-		stacks.forEach(s -> moveItemStackAtToTarget(s, target));
-		
+	public static void deleteStacks(List<ItemStackAt> stacks) {
+		stacks.forEach(InventoryUtil::deleteStack);		
 	}
 	
+	public static void deleteStack(ItemStackAt itemStackAt) {
+		deleteStack(itemStackAt.getInventory(), itemStackAt.getSlot());
+	}
+	
+	public static void deleteStack(InventoryHandler sourcePair, int sourceSlot) {	
+		final ItemStack stackToDelete = sourcePair.getItemHandler().getStackInSlot(sourceSlot);
+		sourcePair.getItemHandler().extractItem(sourceSlot, stackToDelete.getCount(), false);
+		sourcePair.getTileEntity().markDirty();
+	}
+	
+	public static void moveItemStackAtsToTarget(List<ItemStackAt> stacks, InventoryHandler target) {
+		stacks.forEach(s -> moveItemStackAtToTarget(s, target));
+	}
+
 	public static void moveItemStackAtToTarget(ItemStackAt itemStackAt, InventoryHandler target) {
 		moveStack(target, itemStackAt.getInventory(), itemStackAt.getSlot());
 	}
@@ -226,11 +254,6 @@ public class InventoryUtil {
 		}
 
 		return handlers;
-	}
-	
-	public static BeeWrapper wrapBee(ItemStackAt iSTAT) {
-		BeeWrapper newWrapper = new BeeWrapper(((ItemBeeGE)iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack()), iSTAT);
-		return newWrapper;
 	}
 
 }
