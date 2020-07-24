@@ -5,38 +5,36 @@ import forestry.core.tiles.TileAnalyzer;
 import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.items.IItemHandler;
 
-public class AnalyzerInventoryHandler  extends InventoryHandler {
+public class AnalyzerInventoryHandler extends InventoryHandler {
 	private TileAnalyzer tileAnalyzer;
 	private IFluidTank honeyTank;
-	
+
 	public AnalyzerInventoryHandler(TileAnalyzer tileAnalyzer, IItemHandler inventoryHandler) {
-		super(tileAnalyzer, inventoryHandler); 
-		
+		super(tileAnalyzer, inventoryHandler);
+
 		this.tileAnalyzer = tileAnalyzer;
 		this.honeyTank = this.tileAnalyzer.getTankManager().getTank(0);
 	}
-	
-	public TileAnalyzer getTypeEntity()
-	{
+
+	public TileAnalyzer getTypeEntity() {
 		return this.tileAnalyzer;
 	}
-	
-	public int getTankFluidAmount()
-	{
+
+	public int getTankFluidAmount() {
 		int result = 0;
-		
-		if (this.honeyTank != null)
-		{
+
+		if (this.honeyTank != null) {
 			result = this.honeyTank.getFluidAmount();
 		}
-		
+
 		return result;
 	}
-	
-	public Boolean getIsBusy()
-	{
+
+	public Boolean getIsBusy() {
 		return this.tileAnalyzer.workCycle();
-		
-		//return this.tileAnalyzer.get
+	}
+	
+	public int getStoredPower() {
+		return tileAnalyzer.getEnergyManager().getEnergyStored();
 	}
 }

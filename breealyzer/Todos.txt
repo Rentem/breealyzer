@@ -19,7 +19,7 @@
  - Check honey reserves for analyzers (possible to get the Fluid amount from AnalyzerInventoryHandler.getTankFluidAmount())
  - breeding log
  - commands & flags
- - message if analyzers are empty (honey)
+ - message if analyzers are empty (honey, power) or has bees to analyze
   
  WIP:
  	XpA:  

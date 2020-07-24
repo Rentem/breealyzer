@@ -16,6 +16,9 @@ import forestry.apiculture.items.ItemBeeGE;
 import net.minecraft.item.ItemStack;
 
 public class BeeUtil {
+	private static int ANALYZER_MIN_AMOUNT_HONEY = 100;
+	private static int ANALYZER_MIN_AMOUNT_POWER = 100;
+
 	private BeeUtil() {
 		throw new IllegalStateException("Utility class");
 	}
@@ -148,5 +151,32 @@ public class BeeUtil {
 			}
 		}
 		return false;
+	}
+
+	public static Boolean areAnalyzersDone(List<AnalyzerInventoryHandler> analyzers) {
+		for (AnalyzerInventoryHandler handler : analyzers) {
+			if (handler.getIsBusy()) {
+				Log.info("One or more Analyzers are busy...");
+				return false;
+			}
+			if (InventoryUtil.hasItemInSlotRange(handler, 0, 5)) {
+				if (handler.getTankFluidAmount() < ANALYZER_MIN_AMOUNT_HONEY) {
+					Log.info("One or more Analyzers are missing honey...");
+					return false;
+				}
+				if (handler.getTankFluidAmount() < ANALYZER_MIN_AMOUNT_POWER) {
+					Log.info("One or more Analyzers are missing power...");
+					return false;
+				}
+				if (InventoryUtil.hasItemInSlotRange(handler, 11, 11)) {
+					Log.info("One or more Analyzers is full...");
+					return false;
+				}
+				return false;
+			}
+
+		}
+
+		return true;
 	}
 }

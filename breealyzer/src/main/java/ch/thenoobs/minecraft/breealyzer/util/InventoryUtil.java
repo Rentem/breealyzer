@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.thenoobs.minecraft.breealyzer.util.inventory.AnalyzerInventoryHandler;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.Item;
@@ -254,6 +255,16 @@ public class InventoryUtil {
 		}
 
 		return handlers;
+	}
+
+	public static boolean hasItemInSlotRange(InventoryHandler handler, int minSlot, int maxSlot) {
+		for (int slot = minSlot; slot <= maxSlot; slot++) {
+			final ItemStack stackToPull = handler.getItemHandler().getStackInSlot(slot);
+			if (!stackToPull.isEmpty()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

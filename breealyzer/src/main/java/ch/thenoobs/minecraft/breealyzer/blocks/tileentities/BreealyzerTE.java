@@ -55,7 +55,6 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	private String[] currentCommand;
 	private List<String> commandHistory;
 
-	private int beeAmountInAnalyzer;
 	private boolean deleteTrashBees;
 
 	@Override
@@ -78,25 +77,6 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			executeCurrentCommand();
 
 			// trashBees();
-		}
-	}
-
-	// TODO integrate properly
-	private void purifyBee() {
-		if (analyzers.isEmpty()) {
-			return;
-		}
-		if (BeeUtil.isAnAnalyzerBusy(analyzers)) {
-			return;
-		}
-
-		BeeUtil.clearApiaries(apiaries, beeInventoryHandler, lootInventoryHandler);
-
-		analyzeBees();
-
-		if (beeAmountInAnalyzer <= 0) {
-			fillApiaries(beeInventoryHandler);
-			beeAmountInAnalyzer = 0;
 		}
 	}
 
@@ -200,16 +180,35 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 
 	}
 
+	// TODO integrate properly
+	private void purifyBee() {
+		if (analyzers.isEmpty()) {
+			return;
+		}
+		if (!BeeUtil.areAnalyzersDone(analyzers)) {
+			for (InventoryHandler analyzer : analyzers) {
+				InventoryUtil.moveStack(beeInventoryHandler, analyzer, 8);
+			}
+			return;
+		}
+
+		BeeUtil.clearApiaries(apiaries, beeInventoryHandler, lootInventoryHandler);
+
+		analyzeBees();
+		if (!BeeUtil.areAnalyzersDone(analyzers)) {
+			return;
+		}
+		fillApiaries(beeInventoryHandler);
+	}
+
 	private void analyzeBees() {
 		List<ItemStackAt> unAnalyzedBees = BeeUtil.getUnAnalyzedBees(beeInventoryHandler);
-		int amount = BeeUtil.fillAnalyzers(unAnalyzedBees, beeInventoryHandler, analyzers);
-		beeAmountInAnalyzer += amount;
-		if (beeAmountInAnalyzer > 0) {
-			for (InventoryHandler analyzer : analyzers) {
-				amount = InventoryUtil.emptyInventoryCountTotalMoved(beeInventoryHandler, analyzer);
-				beeAmountInAnalyzer -= amount;
-			}
+		BeeUtil.fillAnalyzers(unAnalyzedBees, beeInventoryHandler, analyzers);
+
+		for (InventoryHandler analyzer : analyzers) {
+			InventoryUtil.emptyInventoryCountTotalMoved(beeInventoryHandler, analyzer);
 		}
+
 	}
 
 	private void fillApiaries(InventoryHandler beeInventoryPair) {
@@ -255,7 +254,6 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		compound.setBoolean("deleteTrashBees", deleteTrashBees);
 		compound.setInteger("tickCnt", tickCnt);
 		compound.setInteger("tickModulo", tickModulo);
-		compound.setInteger("beeAmountInAnalyzer", beeAmountInAnalyzer);
 		return super.writeToNBT(compound);
 	}
 
@@ -267,7 +265,6 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		deleteTrashBees = compound.getBoolean("deleteTrashBees");
 		tickCnt = compound.getInteger("tickCnt");
 		tickModulo = compound.getInteger("tickModulo");
-		beeAmountInAnalyzer = compound.getInteger("beeAmountInAnalyzer");
 		super.readFromNBT(compound);
 	}
 
