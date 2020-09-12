@@ -4,26 +4,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import ch.thenoobs.minecraft.breealyzer.blocks.tileentities.BreealyzerTE;
-import ch.thenoobs.minecraft.breealyzer.util.InventoryHandler;
-import ch.thenoobs.minecraft.breealyzer.util.InventoryUtil;
-import ch.thenoobs.minecraft.breealyzer.util.ItemStackAt;
-import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeScore;
-import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeSelector;
-import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeWrapper;
-import ch.thenoobs.minecraft.breealyzer.util.allelescoring.ScoringResult;
-import jline.internal.Log;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
 import scala.actors.threadpool.Arrays;
 
 public class CommandManager {
 	private static Map<String, BreealyzerTE> registeredBreeAlyzers = new HashMap<>();
+
+	private static List<String> generalCommands;
+	private static List<String> breeAlyzerCommands;
+	
 
 	public static void registerBreeAlyzer(BreealyzerTE breealyzer) {
 		if (registeredBreeAlyzers.containsKey(breealyzer.ensureAndGetUUID())) {
@@ -37,11 +31,11 @@ public class CommandManager {
 			return;
 		}
 		String idString = command[0];
-		if (idString.equalsIgnoreCase("list")) {
+		if (idString.equalsIgnoreCase("listBreeAlyzers")) {
 			listRegisteredBreealyzers(sender);
 			return;
 		}
-		if (idString.equalsIgnoreCase("find")) {
+		if (idString.equalsIgnoreCase("findBreeAlyzer")) {
 			findBreealayzer(command[1], sender);
 			return;
 		}
@@ -50,6 +44,8 @@ public class CommandManager {
 			return;
 		}
 		if (command.length < 2) {
+			TextComponentString text = new TextComponentString("Unknown general command: " + Arrays.toString(command));
+			sender.sendMessage(text);
 			return;
 		}
 		if (!isCommandValid(command)) {
@@ -64,22 +60,35 @@ public class CommandManager {
 			sender.sendMessage(text);
 			return;
 		}
-		alyzer.setNewCommand((String[]) Arrays.copyOfRange(command, 1, command.length));
+		alyzer.sendCommand((String[]) Arrays.copyOfRange(command, 1, command.length), sender);
 
 	}
 
+	public static List<String> getGlobalCommands() {
+		if (generalCommands != null) {
+			return generalCommands;
+		}
+		generalCommands = new ArrayList<>();
+		generalCommands.add("listBreeAlyzers");
+		generalCommands.add("findBreeAlyzer");
+		generalCommands.add("clearRegister");
+		return generalCommands;
+	}
+	
+	public static List<String> getBreeAlyzerCommands() {
+		if (breeAlyzerCommands != null) {
+			return breeAlyzerCommands;
+		}
+		breeAlyzerCommands = new ArrayList<>();
+		breeAlyzerCommands.add("listBreeAlyzers");
+		breeAlyzerCommands.add("findBreeAlyzer");
+		breeAlyzerCommands.add("clearRegister");
+		return breeAlyzerCommands;
+	}
+	
 	// TODO better way? switch?
 	private static boolean isCommandValid(String[] command) {
-		if (command[1].equalsIgnoreCase("purify") && command[2] != null && !command[2].isEmpty()) {
-			return true;
-		}
-		if (command[1].equalsIgnoreCase("toggleDeleteTrashBees")) {
-			return true;
-		}
-		if (command[1].equalsIgnoreCase("listKnownSpecies")) {
-			return true;
-		}
-		return false;
+		return breeAlyzerCommands.contains(command[1]);
 	}
 
 	private static void findBreealayzer(String alyzerId, ICommandSender sender) {
@@ -101,10 +110,14 @@ public class CommandManager {
 	}
 
 	private static void listRegisteredBreealyzers(ICommandSender sender) {
-		for (String key : registeredBreeAlyzers.keySet()) {
+		for (String key : getRegisteredBreeAlyzers()) {
 			TextComponentString text = new TextComponentString(key);
 			sender.sendMessage(text);
 		}
+	}
+
+	public static Set<String> getRegisteredBreeAlyzers() {
+		return registeredBreeAlyzers.keySet();
 	}
 
 }
