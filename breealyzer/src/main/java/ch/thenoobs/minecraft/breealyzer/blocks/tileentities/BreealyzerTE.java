@@ -2,8 +2,11 @@ package ch.thenoobs.minecraft.breealyzer.blocks.tileentities;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -19,17 +22,22 @@ import ch.thenoobs.minecraft.breealyzer.util.allelescoring.BeeScore;
 import ch.thenoobs.minecraft.breealyzer.util.inventory.AnalyzerInventoryHandler;
 import ch.thenoobs.minecraft.breealyzer.util.inventory.ApiaryInventoryHandler;
 import ch.thenoobs.minecraft.breealyzer.util.trashing.TrashManager;
+import forestry.api.apiculture.EnumBeeChromosome;
 import forestry.api.apiculture.EnumBeeType;
+import forestry.api.apiculture.IBee;
+import forestry.api.genetics.IAlleleSpecies;
 import forestry.apiculture.items.ItemBeeGE;
 import forestry.apiculture.tiles.TileApiary;
 import forestry.core.tiles.TileAnalyzer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.util.Constants;
 
 public class BreealyzerTE extends TileEntity implements ITickable {
@@ -56,6 +64,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 	private List<String> commandHistory;
 
 	private boolean deleteTrashBees;
+	private boolean instaAnalyze = false;
 
 	@Override
 	public void update() {
@@ -64,6 +73,7 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 			if (tickModulo < 20) {
 				tickModulo = 100;
 			}
+			
 			tickCnt = tickModulo;
 			executeTick();
 		}
@@ -93,13 +103,36 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 
 	// TODO check valid commands, move to CommandManager?
 	// TEST ID 362c299e-856b-498d-86fc-3b6f5742cb0a
-	public void setNewCommand(String[] command) {
+	public void sendCommand(String[] command, ICommandSender sender) {
 		if (command[0].equalsIgnoreCase("toggleDeleteTrashBees")) {
 			deleteTrashBees = !deleteTrashBees;
 			return;
 		}
 		if (command[0].equalsIgnoreCase("listKnownSpecies")) {
 
+			Set<String> species = getAvailableBeeSpecies(beeInventoryHandler);
+			TextComponentString text = new TextComponentString("Available Species [" + species.size() + "]:");
+			sender.sendMessage(text);
+
+			List<String> sortedSpecies = species.stream().sorted().collect(Collectors.toList());
+			for (String spec : sortedSpecies) {
+				text = new TextComponentString(spec);
+				sender.sendMessage(text);
+			}
+			return;
+		}
+		
+		if (command[0].equalsIgnoreCase("instaAnalyze")) {
+			if (command.length == 1) {
+				TextComponentString text = new TextComponentString("Please provide value");
+				sender.sendMessage(text);
+				return;
+			}
+			
+				boolean bool = Boolean.parseBoolean(command[1]);
+				instaAnalyze = bool;
+			
+			
 			return;
 		}
 
@@ -114,6 +147,22 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		}
 		Log.info(Arrays.toString(currentCommand));
 		if (currentCommand[0].equalsIgnoreCase("purify")) {
+			purifyBee();
+		}
+		if (currentCommand[0].equalsIgnoreCase("purifyAllBees")) {
+			if (currentCommand.length == 1) {
+				Set<String> availableSpecies = getAvailableBeeSpecies(beeInventoryHandler);
+				if (availableSpecies.isEmpty()) {
+					clearCurrentCommand();
+					return;
+				}
+				List<String> sortedSpecies = availableSpecies.stream().sorted().collect(Collectors.toList());
+
+				currentCommand = Arrays.copyOf(currentCommand, 2);
+
+				currentCommand[1] = sortedSpecies.get(0);
+			}
+
 			purifyBee();
 		}
 	}
@@ -203,6 +252,15 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 
 	private void analyzeBees() {
 		List<ItemStackAt> unAnalyzedBees = BeeUtil.getUnAnalyzedBees(beeInventoryHandler);
+
+		if (instaAnalyze) {
+			for (ItemStackAt stack : unAnalyzedBees) {
+				IBee bee = BeeUtil.getBeeFromISTAT(stack);
+				bee.analyze();
+			}
+
+			return;
+		}
 		BeeUtil.fillAnalyzers(unAnalyzedBees, beeInventoryHandler, analyzers);
 
 		for (InventoryHandler analyzer : analyzers) {
@@ -241,9 +299,47 @@ public class BreealyzerTE extends TileEntity implements ITickable {
 		Consumer<List<BeeScore>> thrashMethod = thrash -> trashManager.trashBees(thrash, lootInventoryHandler, beeInventoryPair, beeInventoryPair, deleteTrashBees);
 		int cmdReturn = BeeUtil.purifyBee(drones, princesses, thrashMethod, apiaryInventoryPair, currentCommand[1]);
 		if (cmdReturn == 0) {
-			// TODO inform finished?
-			currentCommand = new String[0];
+			donePurifing();
 		}
+	}
+
+	private void donePurifing() {
+		// TODO inform finished?
+		Log.info("Done purifing " + currentCommand[1]);
+		if (currentCommand[0].equals("purifyAllBees")) {
+			Set<String> availableSpesies = getAvailableBeeSpecies(beeInventoryHandler);
+			List<String> sortedSpecies = availableSpesies.stream().sorted().collect(Collectors.toList());
+			String currentSpecies = currentCommand[1];
+			int indexPlus = sortedSpecies.indexOf(currentSpecies) + 1;
+			if (indexPlus >= sortedSpecies.size()) {
+				clearCurrentCommand();
+				return;
+			}
+			if (currentCommand.length < 2) {
+				currentCommand = Arrays.copyOf(currentCommand, 2);
+			}
+			currentCommand[1] = sortedSpecies.get(indexPlus);
+			return;
+		}
+		clearCurrentCommand();
+	}
+
+	private void clearCurrentCommand() {
+		currentCommand = new String[0];
+	}
+
+	private Set<String> getAvailableBeeSpecies(InventoryHandler beeInventoryPair) {
+		Set<String> availableSpecieses = new HashSet<>();
+		List<ItemStackAt> bees = InventoryUtil.getStacksOfType(beeInventoryPair, ItemBeeGE.class);
+		for (ItemStackAt stack : bees) {
+			IBee bee = BeeUtil.getBeeFromItemStack(stack);
+			IAlleleSpecies allele = (IAlleleSpecies) bee.getGenome().getActiveAllele(EnumBeeChromosome.SPECIES);
+			availableSpecieses.add(allele.getName());
+
+			allele = (IAlleleSpecies) bee.getGenome().getInactiveAllele(EnumBeeChromosome.SPECIES);
+			availableSpecieses.add(allele.getName());
+		}
+		return availableSpecieses;
 	}
 
 	@Override
