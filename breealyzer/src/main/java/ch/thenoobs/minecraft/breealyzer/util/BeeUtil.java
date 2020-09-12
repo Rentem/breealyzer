@@ -30,9 +30,13 @@ public class BeeUtil {
 	}
 
 	public static IBee getBeeFromISTAT(ItemStackAt iSTAT) {
-		return ((ItemBeeGE) iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack());
+		return getBeeFromStack(iSTAT.getStack());
 	}
 
+	public static IBee getBeeFromStack(ItemStack stack) {
+		return ((ItemBeeGE) stack.getItem()).getIndividual(stack);
+	}
+	
 	public static int fillAnalyzers(List<ItemStackAt> bees, InventoryHandler workChest, List<AnalyzerInventoryHandler> analyzers) {
 		int cnt = bees.size() - 1;
 		int totalAmount = 0;
@@ -51,8 +55,8 @@ public class BeeUtil {
 			return 0;
 		}
 		if (stackToPull.getItem() instanceof ItemBeeGE) {
-			ItemBeeGE beeItem = (ItemBeeGE) stackToPull.getItem();
-			if (beeItem.getIndividual(stackToPull).isAnalyzed()) {
+			IBee bee = getBeeFromStack(stackToPull);
+			if (bee.isAnalyzed()) {
 				return 0;
 			}
 		} else {
@@ -139,7 +143,7 @@ public class BeeUtil {
 	}
 
 	public static BeeWrapper wrapBee(ItemStackAt iSTAT) {
-		BeeWrapper newWrapper = new BeeWrapper(((ItemBeeGE) iSTAT.getStack().getItem()).getIndividual(iSTAT.getStack()), iSTAT);
+		BeeWrapper newWrapper = new BeeWrapper(BeeUtil.getBeeFromISTAT(iSTAT), iSTAT);
 		return newWrapper;
 	}
 
@@ -178,5 +182,10 @@ public class BeeUtil {
 		}
 
 		return true;
+	}
+
+	public static IBee getBeeFromItemStack(ItemStackAt stack) {
+		IBee bee = ((ItemBeeGE) stack.getStack().getItem()).getIndividual(stack.getStack());
+		return bee;
 	}
 }
